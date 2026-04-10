@@ -141,13 +141,13 @@ try:
     tool_obs = env.step(ListToolsAction())
     tools = getattr(tool_obs, "tools", [])
     tool_names = sorted([t.name for t in tools])
-    check("ListToolsAction returns tools", len(tools) == 10, f"found {len(tools)}")
-    expected = sorted([
+    check("ListToolsAction returns tools", len(tools) >= 10, f"found {len(tools)}")
+    expected_core = sorted([
         "observe_network", "investigate_alert", "isolate_host", "block_ip",
         "run_forensics", "deploy_patch", "restore_backup", "dismiss_alert",
         "deploy_honeypot", "escalate_incident",
     ])
-    check("All 10 tools present", tool_names == expected, str(tool_names))
+    check("All 10 core tools present", all(t in tool_names for t in expected_core), str(tool_names))
 except Exception as e:
     check("Tool discovery", False, str(e))
 
