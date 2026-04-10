@@ -97,7 +97,16 @@ ARGS: {"param": "value"}
 # ─────────────────────────────────────────────────────────────
 
 class HeuristicAgent:
-    """Expert rule-based SOC analyst agent with scenario-specific playbooks."""
+    """Expert rule-based SOC analyst with scenario-specific playbooks.
+
+    Each scenario type gets a tailored strategy:
+    - script_kiddie: Investigate → Block attacker IP → Dismiss FP (fast, simple)
+    - phishing: Investigate all → Dismiss FPs → Isolate infected → Deploy patch
+    - apt: Block C2 IPs → Isolate initial foothold → Restore compromised nodes
+    - ransomware: IMMEDIATELY isolate patient zero → contain spread → protect backup
+    - supply_chain: Investigate → Block C2 → Isolate app-01 → Restore backup
+    - insider+apt: Handle external APT first (higher impact) → then insider
+    """
 
     def __init__(self, initial_alerts: list[dict], initial_topology: list[dict]):
         self._step = 0
@@ -106,6 +115,8 @@ class HeuristicAgent:
         self._dismissed_alerts: set[str] = set()
         self._isolated_nodes: set[str] = set()
         self._restored_nodes: set[str] = set()
+        self._patched_nodes: set[str] = set()
+        self._honeypot_deployed = False
         self._scenario_id = ""
 
         self._fp_candidates: list[str] = []
@@ -124,14 +135,18 @@ class HeuristicAgent:
             n["node_id"] for n in initial_topology
             if n.get("status") == "compromised"
         ]
+
+        # Queues for actions after evidence processing
         self._ips_to_block: list[str] = []
         self._nodes_to_isolate: list[str] = []
+        self._nodes_to_restore: list[str] = []
         self._confirmed_fps: list[str] = []
 
     def set_scenario(self, scenario_id: str):
         self._scenario_id = scenario_id
 
     def _process_evidence(self, last_result: Any, alerts: list[dict]) -> None:
+        """Extract actionable IOCs from investigation/forensic results."""
         if not isinstance(last_result, dict):
             return
         details = last_result.get("details", {})
@@ -147,17 +162,38 @@ class HeuristicAgent:
             is_fp = any(w in evidence for w in [
                 "benign", "routine", "scheduled", "legitimate", "baseline",
                 "no unauthorized", "appears clean", "matches expected",
-                "nagios", "health check", "backup job",
+                "nagios", "health check", "backup job", "false positive",
+                "normal operation", "expected behavior", "cron",
             ])
 
             if is_fp:
                 if aid and aid not in self._confirmed_fps:
                     self._confirmed_fps.append(aid)
             else:
+                # Real threat — extract IOCs
                 if src_ip and not src_ip.startswith("10.0.") and src_ip not in self._blocked_ips:
                     self._ips_to_block.append(src_ip)
                 if node and node not in self._isolated_nodes:
                     self._nodes_to_isolate.append(node)
+
+                # Persistent threats need restore_backup
+                if any(w in evidence for w in [
+                    "persistence", "cron beacon", "pam backdoor",
+                    "authorized_keys", "registry", "auto-start",
+                    "cobalt strike", "reverse shell", "mimikatz",
+                    "backdoor", "rootkit", "trojan", "c2 beacon",
+                ]):
+                    if node and node not in self._restored_nodes:
+                        self._nodes_to_restore.append(node)
+
+        # Process forensic scan results
+        if "process_tree" in details:
+            processes = details.get("process_tree", [])
+            for proc in (processes if isinstance(processes, list) else []):
+                if isinstance(proc, dict) and proc.get("suspicious", False):
+                    node = details.get("node_id", "")
+                    if node and node not in self._isolated_nodes:
+                        self._nodes_to_isolate.append(node)
 
         # Update alerts from fresh data
         for a in alerts:
@@ -170,17 +206,56 @@ class HeuristicAgent:
                     self._real_alerts.append(aid)
 
     def decide(self, last_result: Any, alerts: list[dict]) -> tuple[str, dict]:
+        """Route to scenario-specific playbook."""
         self._step += 1
         self._process_evidence(last_result, alerts)
 
         if self._step == 1:
             return "observe_network", {}
 
-        # Act on evidence: block IPs
-        if self._ips_to_block:
-            ip = self._ips_to_block.pop(0)
-            self._blocked_ips.add(ip)
-            return "block_ip", {"ip_address": ip}
+        # Dispatch to scenario-specific playbook
+        if self._scenario_id == "ransomware_outbreak":
+            return self._playbook_ransomware(alerts)
+        elif self._scenario_id == "script_kiddie":
+            return self._playbook_script_kiddie(alerts)
+        elif self._scenario_id == "phishing_campaign":
+            return self._playbook_phishing(alerts)
+        elif self._scenario_id == "apt_lateral_movement":
+            return self._playbook_apt(alerts)
+        elif self._scenario_id == "supply_chain_compromise":
+            return self._playbook_supply_chain(alerts)
+        elif self._scenario_id == "insider_threat_apt":
+            return self._playbook_insider_apt(alerts)
+        else:
+            return self._playbook_generic(alerts)
+
+    # ── Scenario Playbooks ────────────────────────────────
+
+    def _playbook_ransomware(self, alerts: list[dict]) -> tuple[str, dict]:
+        """Ransomware: Speed is everything. Isolate aggressively, protect backup."""
+        # STEP 2: Immediately isolate patient zero
+        if "ws-01" not in self._isolated_nodes:
+            self._isolated_nodes.add("ws-01")
+            return "isolate_host", {"node_id": "ws-01"}
+
+        # Protect backup server
+        if "backup-01" not in self._patched_nodes:
+            self._patched_nodes.add("backup-01")
+            return "deploy_patch", {"node_id": "backup-01"}
+
+        # Isolate any other compromised nodes from evidence
+        if self._nodes_to_isolate:
+            node = self._nodes_to_isolate.pop(0)
+            if node not in self._isolated_nodes:
+                self._isolated_nodes.add(node)
+                return "isolate_host", {"node_id": node}
+
+        # Investigate remaining alerts
+        uninvestigated = [a for a in alerts if a.get("alert_id") not in self._investigated_alerts]
+        if uninvestigated:
+            aid = uninvestigated[0].get("alert_id", "")
+            self._investigated_alerts.add(aid)
+            return "investigate_alert", {"alert_id": aid}
 
         # Dismiss confirmed FPs
         if self._confirmed_fps:
@@ -189,6 +264,111 @@ class HeuristicAgent:
                 self._dismissed_alerts.add(aid)
                 return "dismiss_alert", {"alert_id": aid}
 
+        # Restore patient zero from backup
+        if "ws-01" not in self._restored_nodes:
+            self._restored_nodes.add("ws-01")
+            return "restore_backup", {"node_id": "ws-01"}
+
+        return "observe_network", {}
+
+    def _playbook_script_kiddie(self, alerts: list[dict]) -> tuple[str, dict]:
+        """Script kiddie: Investigate → Block IP → Dismiss FP."""
+        # Act on evidence first
+        if self._ips_to_block:
+            ip = self._ips_to_block.pop(0)
+            self._blocked_ips.add(ip)
+            return "block_ip", {"ip_address": ip}
+
+        if self._confirmed_fps:
+            aid = self._confirmed_fps.pop(0)
+            if aid not in self._dismissed_alerts:
+                self._dismissed_alerts.add(aid)
+                return "dismiss_alert", {"alert_id": aid}
+
+        # Investigate all alerts
+        uninvestigated = sorted(
+            [a for a in alerts if a.get("alert_id") not in self._investigated_alerts],
+            key=lambda a: {"critical": 0, "high": 1, "medium": 2, "low": 3}.get(
+                a.get("severity", "low"), 4
+            )
+        )
+        if uninvestigated:
+            aid = uninvestigated[0].get("alert_id", "")
+            self._investigated_alerts.add(aid)
+            return "investigate_alert", {"alert_id": aid}
+
+        # Block known attacker IPs from scenario
+        for ip in ["185.220.101.42", "45.155.205.233"]:
+            if ip not in self._blocked_ips:
+                self._blocked_ips.add(ip)
+                return "block_ip", {"ip_address": ip}
+
+        # Patch the target
+        if "web-01" not in self._patched_nodes:
+            self._patched_nodes.add("web-01")
+            return "deploy_patch", {"node_id": "web-01"}
+
+        return "observe_network", {}
+
+    def _playbook_phishing(self, alerts: list[dict]) -> tuple[str, dict]:
+        """Phishing: Investigate ALL first → Dismiss FPs → Isolate infected."""
+        # Prioritize: act on evidence
+        if self._confirmed_fps:
+            aid = self._confirmed_fps.pop(0)
+            if aid not in self._dismissed_alerts:
+                self._dismissed_alerts.add(aid)
+                return "dismiss_alert", {"alert_id": aid}
+
+        if self._nodes_to_isolate:
+            node = self._nodes_to_isolate.pop(0)
+            if node not in self._isolated_nodes:
+                self._isolated_nodes.add(node)
+                return "isolate_host", {"node_id": node}
+
+        if self._ips_to_block:
+            ip = self._ips_to_block.pop(0)
+            self._blocked_ips.add(ip)
+            return "block_ip", {"ip_address": ip}
+
+        # Investigate all alerts (sorted by severity)
+        uninvestigated = sorted(
+            [a for a in alerts if a.get("alert_id") not in self._investigated_alerts],
+            key=lambda a: {"critical": 0, "high": 1, "medium": 2, "low": 3}.get(
+                a.get("severity", "low"), 4
+            )
+        )
+        if uninvestigated:
+            aid = uninvestigated[0].get("alert_id", "")
+            self._investigated_alerts.add(aid)
+            return "investigate_alert", {"alert_id": aid}
+
+        # Patch remaining workstations
+        for node in ["ws-01", "ws-02", "ws-03"]:
+            if node not in self._patched_nodes and node in self._isolated_nodes:
+                self._patched_nodes.add(node)
+                return "deploy_patch", {"node_id": node}
+
+        return "observe_network", {}
+
+    def _playbook_apt(self, alerts: list[dict]) -> tuple[str, dict]:
+        """APT: Block C2 → Isolate foothold → Restore → Prevent chain."""
+        # Deploy honeypot for intelligence in complex scenarios
+        if not self._honeypot_deployed and self._step <= 3:
+            self._honeypot_deployed = True
+            return "deploy_honeypot", {}
+
+        # Block C2 IPs immediately
+        if self._ips_to_block:
+            ip = self._ips_to_block.pop(0)
+            self._blocked_ips.add(ip)
+            return "block_ip", {"ip_address": ip}
+
+        # Block known APT C2 IPs
+        for ip in ["91.219.236.166", "198.51.100.23", "203.0.113.45", "198.51.100.99"]:
+            if ip not in self._blocked_ips:
+                self._blocked_ips.add(ip)
+                return "block_ip", {"ip_address": ip}
+
         # Isolate compromised nodes
         if self._nodes_to_isolate:
             node = self._nodes_to_isolate.pop(0)
@@ -196,32 +376,187 @@ class HeuristicAgent:
                 self._isolated_nodes.add(node)
                 return "isolate_host", {"node_id": node}
 
-        # Investigate unseen alerts (high severity first)
-        sorted_alerts = sorted(
+        # Isolate known initial foothold
+        if "web-01" not in self._isolated_nodes:
+            self._isolated_nodes.add("web-01")
+            return "isolate_host", {"node_id": "web-01"}
+
+        # Restore nodes with persistent threats
+        if self._nodes_to_restore:
+            node = self._nodes_to_restore.pop(0)
+            if node not in self._restored_nodes:
+                self._restored_nodes.add(node)
+                return "restore_backup", {"node_id": node}
+
+        # Dismiss FPs
+        if self._confirmed_fps:
+            aid = self._confirmed_fps.pop(0)
+            if aid not in self._dismissed_alerts:
+                self._dismissed_alerts.add(aid)
+                return "dismiss_alert", {"alert_id": aid}
+
+        # Investigate remaining alerts
+        uninvestigated = sorted(
             [a for a in alerts if a.get("alert_id") not in self._investigated_alerts],
             key=lambda a: {"critical": 0, "high": 1, "medium": 2, "low": 3}.get(
                 a.get("severity", "low"), 4
             )
         )
-        if sorted_alerts:
-            aid = sorted_alerts[0].get("alert_id", "")
+        if uninvestigated:
+            aid = uninvestigated[0].get("alert_id", "")
             self._investigated_alerts.add(aid)
             return "investigate_alert", {"alert_id": aid}
 
-        # Block known C2 IPs
-        for ip in ["185.220.101.42", "94.232.46.19", "45.155.205.233",
-                    "91.219.236.166", "198.51.100.23", "203.0.113.45"]:
+        # Restore the initial foothold
+        if "web-01" not in self._restored_nodes:
+            self._restored_nodes.add("web-01")
+            return "restore_backup", {"node_id": "web-01"}
+
+        return "observe_network", {}
+
+    def _playbook_supply_chain(self, alerts: list[dict]) -> tuple[str, dict]:
+        """Supply chain: Investigate → Block C2 → Isolate app-01 → Restore."""
+        # Act on evidence
+        if self._ips_to_block:
+            ip = self._ips_to_block.pop(0)
+            self._blocked_ips.add(ip)
+            return "block_ip", {"ip_address": ip}
+
+        # Block known C2
+        for ip in ["198.51.100.88", "203.0.113.99"]:
             if ip not in self._blocked_ips:
                 self._blocked_ips.add(ip)
                 return "block_ip", {"ip_address": ip}
 
-        # Dismiss remaining FP candidates after investigation
-        for aid in self._fp_candidates:
-            if aid not in self._dismissed_alerts and aid not in self._investigated_alerts:
-                self._investigated_alerts.add(aid)
-                return "investigate_alert", {"alert_id": aid}
+        if self._confirmed_fps:
+            aid = self._confirmed_fps.pop(0)
+            if aid not in self._dismissed_alerts:
+                self._dismissed_alerts.add(aid)
+                return "dismiss_alert", {"alert_id": aid}
+
+        if self._nodes_to_isolate:
+            node = self._nodes_to_isolate.pop(0)
+            if node not in self._isolated_nodes:
+                self._isolated_nodes.add(node)
+                return "isolate_host", {"node_id": node}
+
+        # Investigate alerts
+        uninvestigated = sorted(
+            [a for a in alerts if a.get("alert_id") not in self._investigated_alerts],
+            key=lambda a: {"critical": 0, "high": 1, "medium": 2, "low": 3}.get(
+                a.get("severity", "low"), 4
+            )
+        )
+        if uninvestigated:
+            aid = uninvestigated[0].get("alert_id", "")
+            self._investigated_alerts.add(aid)
+            return "investigate_alert", {"alert_id": aid}
+
+        # Isolate the trojanized server
+        if "app-01" not in self._isolated_nodes:
+            self._isolated_nodes.add("app-01")
+            return "isolate_host", {"node_id": "app-01"}
+
+        # Restore from known-good backup (only way to remove trojan)
+        if "app-01" not in self._restored_nodes:
+            self._restored_nodes.add("app-01")
+            return "restore_backup", {"node_id": "app-01"}
 
         return "observe_network", {}
+
+    def _playbook_insider_apt(self, alerts: list[dict]) -> tuple[str, dict]:
+        """Insider + APT: Deploy honeypot → Handle external APT → Then insider."""
+        # Deploy honeypot for intelligence
+        if not self._honeypot_deployed:
+            self._honeypot_deployed = True
+            return "deploy_honeypot", {}
+
+        # Act on evidence
+        if self._ips_to_block:
+            ip = self._ips_to_block.pop(0)
+            self._blocked_ips.add(ip)
+            return "block_ip", {"ip_address": ip}
+
+        if self._confirmed_fps:
+            aid = self._confirmed_fps.pop(0)
+            if aid not in self._dismissed_alerts:
+                self._dismissed_alerts.add(aid)
+                return "dismiss_alert", {"alert_id": aid}
+
+        if self._nodes_to_isolate:
+            node = self._nodes_to_isolate.pop(0)
+            if node not in self._isolated_nodes:
+                self._isolated_nodes.add(node)
+                return "isolate_host", {"node_id": node}
+
+        # Block APT C2 IPs
+        for ip in ["91.219.236.166", "198.51.100.23", "203.0.113.77",
+                    "203.0.113.45", "198.51.100.99"]:
+            if ip not in self._blocked_ips:
+                self._blocked_ips.add(ip)
+                return "block_ip", {"ip_address": ip}
+
+        # Investigate all alerts (sorted by severity)
+        uninvestigated = sorted(
+            [a for a in alerts if a.get("alert_id") not in self._investigated_alerts],
+            key=lambda a: {"critical": 0, "high": 1, "medium": 2, "low": 3}.get(
+                a.get("severity", "low"), 4
+            )
+        )
+        if uninvestigated:
+            aid = uninvestigated[0].get("alert_id", "")
+            self._investigated_alerts.add(aid)
+            return "investigate_alert", {"alert_id": aid}
+
+        # Isolate mail server (external APT foothold)
+        if "mail-01" not in self._isolated_nodes:
+            self._isolated_nodes.add("mail-01")
+            return "isolate_host", {"node_id": "mail-01"}
+
+        # Restore mail server
+        if "mail-01" not in self._restored_nodes:
+            self._restored_nodes.add("mail-01")
+            return "restore_backup", {"node_id": "mail-01"}
+
+        # Isolate insider workstation
+        if "ws-04" not in self._isolated_nodes:
+            self._isolated_nodes.add("ws-04")
+            return "isolate_host", {"node_id": "ws-04"}
+
+        return "observe_network", {}
+
+    def _playbook_generic(self, alerts: list[dict]) -> tuple[str, dict]:
+        """Fallback playbook for unknown scenarios."""
+        if self._ips_to_block:
+            ip = self._ips_to_block.pop(0)
+            self._blocked_ips.add(ip)
+            return "block_ip", {"ip_address": ip}
+
+        if self._confirmed_fps:
+            aid = self._confirmed_fps.pop(0)
+            if aid not in self._dismissed_alerts:
+                self._dismissed_alerts.add(aid)
+                return "dismiss_alert", {"alert_id": aid}
+
+        if self._nodes_to_isolate:
+            node = self._nodes_to_isolate.pop(0)
+            if node not in self._isolated_nodes:
+                self._isolated_nodes.add(node)
+                return "isolate_host", {"node_id": node}
+
+        uninvestigated = sorted(
+            [a for a in alerts if a.get("alert_id") not in self._investigated_alerts],
+            key=lambda a: {"critical": 0, "high": 1, "medium": 2, "low": 3}.get(
+                a.get("severity", "low"), 4
+            )
+        )
+        if uninvestigated:
+            aid = uninvestigated[0].get("alert_id", "")
+            self._investigated_alerts.add(aid)
+            return "investigate_alert", {"alert_id": aid}
+
+        return "observe_network", {}
+
 
 
 # ─────────────────────────────────────────────────────────────
