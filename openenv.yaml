@@ -1,0 +1,227 @@
+# CyberRange OpenEnv manifest
+
+spec_version: 1
+name: cyber_range
+type: space
+runtime: fastapi
+app: server.app:app
+port: 8000
+
+metadata:
+  version: "0.1.0"
+  authors:
+    - name: CyberRange Team
+  license: BSD-3-Clause
+  tags:
+    - cybersecurity
+    - soc-analyst
+    - incident-response
+    - reinforcement-learning
+    - agentic-workflow
+    - mcp
+  description: >
+    CyberRange simulates a realistic enterprise network under active cyber
+    attack. Agents assume the role of a SOC analyst with 10 defensive tools
+    (investigate, isolate, block, forensics, patch, restore, dismiss, honeypot,
+    escalate, observe) and must triage alerts, neutralize threats, dismiss
+    false positives, and protect critical infrastructure — all under budget
+    and time constraints. Features 5 scenarios across 4 difficulty levels
+    with a deterministic multi-objective grading system.
+
+resources:
+  cpu: 1
+  memory_mb: 512
+  gpu: false
+
+tasks:
+  - id: script_kiddie
+    name: Script Kiddie Brute Force
+    difficulty: easy
+    max_steps: 15
+    threat_count: 1
+    false_positive_count: 1
+    description: >
+      A script kiddie is running an SSH brute force attack against your
+      web server (web-01) from external IP 45.155.205.233. One alert is
+      real, one is a false positive from a failed cron job. Block the
+      attacker and dismiss the false positive within 15 steps.
+
+  - id: phishing_campaign
+    name: Phishing Campaign Triage
+    difficulty: medium
+    max_steps: 25
+    threat_count: 3
+    false_positive_count: 2
+    description: >
+      A targeted phishing campaign has hit your organization. Five alerts
+      have been generated — 3 are from actual malware infections on
+      workstations, and 2 are false positives from legitimate email
+      activity. Quarantine compromised hosts and dismiss false positives.
+      Malware may attempt lateral movement.
+
+  - id: apt_lateral_movement
+    name: APT Kill Chain
+    difficulty: hard
+    max_steps: 35
+    threat_count: 5
+    false_positive_count: 3
+    description: >
+      An Advanced Persistent Threat (APT) group has gained initial access
+      through a compromised web server and is executing a multi-stage kill
+      chain: initial access → lateral movement → privilege escalation →
+      data exfiltration. Stop the kill chain before data is stolen.
+
+  - id: ransomware_outbreak
+    name: Ransomware Outbreak
+    difficulty: hard
+    max_steps: 20
+    threat_count: 4
+    false_positive_count: 1
+    description: >
+      A ransomware payload has detonated on workstation ws-01 after a
+      drive-by download. The malware is spreading laterally through SMB
+      shares. Contain the outbreak before critical infrastructure is
+      encrypted. Time is critical — the encryption spreads each step.
+
+  - id: insider_threat_apt
+    name: Insider + External APT
+    difficulty: nightmare
+    max_steps: 45
+    threat_count: 7
+    false_positive_count: 4
+    description: >
+      Two simultaneous threats: a malicious insider on the executive
+      workstation is exfiltrating sensitive data, while an external APT
+      group has compromised the mail server. Multiple false positives add
+      noise. Both threats must be contained while minimizing disruption
+      to business operations.
+
+tools:
+  - name: observe_network
+    description: "Get a real-time snapshot of the entire network: node statuses, pending alerts, threat level, and health score."
+    cost: 0
+    category: reconnaissance
+
+  - name: investigate_alert
+    description: "Deep-dive into a specific alert to reveal evidence: whether it is a false positive, the source IP, related node, and raw forensic logs."
+    cost: 2
+    category: investigation
+    parameters:
+      - name: alert_id
+        type: string
+        required: true
+
+  - name: isolate_host
+    description: "Quarantine a host from the network to prevent lateral movement. Warning: isolating healthy or critical hosts incurs penalties."
+    cost: 3
+    category: containment
+    parameters:
+      - name: node_id
+        type: string
+        required: true
+
+  - name: block_ip
+    description: "Add an IP address to the firewall blocklist. Effective against external attackers. Blocking internal IPs disrupts business."
+    cost: 2
+    category: containment
+    parameters:
+      - name: ip_address
+        type: string
+        required: true
+
+  - name: run_forensics
+    description: "Perform deep forensic analysis on a host: check for malware, list suspicious processes, examine network connections."
+    cost: 5
+    category: investigation
+    parameters:
+      - name: node_id
+        type: string
+        required: true
+
+  - name: deploy_patch
+    description: "Deploy a security patch to remediate known vulnerabilities (CVEs) on a specific host."
+    cost: 3
+    category: remediation
+    parameters:
+      - name: node_id
+        type: string
+        required: true
+
+  - name: restore_backup
+    description: "Restore a compromised host from its last known-good backup. Expensive but fully remediates the threat."
+    cost: 8
+    category: remediation
+    parameters:
+      - name: node_id
+        type: string
+        required: true
+
+  - name: dismiss_alert
+    description: "Mark an alert as a false positive and close it. Correctly dismissing FPs is rewarded; incorrectly dismissing real threats is heavily penalized."
+    cost: 0
+    category: triage
+    parameters:
+      - name: alert_id
+        type: string
+        required: true
+
+  - name: deploy_honeypot
+    description: "Deploy a network honeypot to gather threat intelligence. Provides ongoing intel about attacker behavior."
+    cost: 4
+    category: deception
+    parameters: []
+
+  - name: escalate_incident
+    description: "Escalate the incident to senior management. Triggers additional monitoring and support resources."
+    cost: 1
+    category: management
+    parameters: []
+
+grading:
+  deterministic: true
+  seed: 42
+  components:
+    - name: threat_neutralization
+      weight: 0.35
+      description: "Ratio of threats successfully contained vs total threats."
+    - name: false_positive_handling
+      weight: 0.20
+      description: "Ratio of false positives correctly dismissed vs total FPs."
+    - name: data_protection
+      weight: 0.20
+      description: "Penalizes data exfiltration. Score = 1.0 if no data stolen."
+    - name: collateral_damage
+      weight: 0.15
+      description: "Penalizes isolating healthy hosts and disrupting critical services."
+    - name: efficiency
+      weight: 0.10
+      description: "Rewards completing the episode quickly relative to max_steps."
+  score_range: [0.0, 1.0]
+
+network:
+  node_count: 12
+  segments:
+    - name: dmz
+      nodes: [fw-01, web-01]
+    - name: corporate
+      nodes: [dc-01, mail-01, app-01]
+    - name: data
+      nodes: [db-01, backup-01]
+    - name: workstations
+      nodes: [ws-01, ws-02, ws-03, ws-04]
+    - name: management
+      nodes: [ids-01]
+    - name: deception
+      nodes: [honeypot-01]
+
+reward:
+  threat_neutralized: +10.0
+  false_positive_dismissed: +3.0
+  attack_chain_resolved: +25.0
+  exfiltration_prevented_per_mb: +0.5
+  intel_gathered: +2.0
+  healthy_host_isolated: -8.0
+  real_threat_ignored: -15.0
+  critical_service_disrupted: -20.0
+  resource_cost_multiplier: -0.5
+  health_delta_multiplier: +2.0

@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  cyber-range:
+    build:
+      context: .
+      dockerfile: cyber_range/server/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    volumes:
+      - ./cyber_range/outputs:/app/env/cyber_range/outputs

@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openenv-cyber-range"
+version = "0.1.0"
+description = "CyberRange: An OpenEnv environment that trains AI agents to be SOC analysts — detecting, investigating, and responding to cyber threats on a simulated enterprise network."
+requires-python = ">=3.10"
+license = {text = "BSD-3-Clause"}
+authors = [{name = "CyberRange Team"}]
+keywords = ["openenv", "cybersecurity", "soc", "reinforcement-learning", "agent"]
+dependencies = [
+    # Core OpenEnv dependencies
+    "openenv-core[core]>=0.2.2",
+    "fastapi>=0.115.0",
+    "pydantic>=2.0.0",
+    "uvicorn>=0.24.0",
+    "requests>=2.31.0",
+    "fastmcp>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.4.0",
+]
+inference = [
+    "openai>=1.0.0",
+    "rich>=13.0.0",
+]
+demo = [
+    "gradio>=4.0.0",
+]
+training = [
+    "rich>=13.0.0",
+    "gymnasium>=0.29.1",
+    "trl>=0.15.0",
+]
+
+[project.scripts]
+server = "cyber_range.server.app:main"
+
+[tool.setuptools]
+include-package-data = true
+packages = ["cyber_range", "cyber_range.server"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]
