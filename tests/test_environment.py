@@ -8,7 +8,7 @@ Validates:
     - reset() returns a well-formed Observation
     - step() processes MCP tool actions correctly
     - state property returns valid State with CyberRange metadata
-    - ListToolsAction discovers all 10 SOC analyst tools
+    - ListToolsAction discovers all 12 SOC analyst tools (10 core + 2 playbook)
     - Episode lifecycle: reset → step … → done
 """
 
@@ -30,6 +30,7 @@ EXPECTED_TOOLS = sorted([
     "observe_network", "investigate_alert", "isolate_host", "block_ip",
     "run_forensics", "deploy_patch", "restore_backup", "dismiss_alert",
     "deploy_honeypot", "escalate_incident",
+    "save_playbook", "search_playbooks",  # Phase 4: Analyst Playbook Library
 ])
 
 
@@ -198,7 +199,7 @@ class TestToolDiscovery:
     def test_list_tools_returns_10_tools(self, env_easy):
         obs = env_easy.step(ListToolsAction())
         tools = getattr(obs, "tools", [])
-        assert len(tools) == 10
+        assert len(tools) == 12  # 10 core SOC tools + save_playbook + search_playbooks
 
     def test_list_tools_has_correct_names(self, env_easy):
         obs = env_easy.step(ListToolsAction())

@@ -17,10 +17,12 @@ try:
     from .network_simulator import NetworkSimulator
     from .attack_engine import AttackEngine
     from .reward_calculator import RewardCalculator
+    from .cyber_judge import CyberJudge, EpisodeLogger
 except ImportError:
     from cyber_range.server.network_simulator import NetworkSimulator
     from cyber_range.server.attack_engine import AttackEngine
     from cyber_range.server.reward_calculator import RewardCalculator
+    from cyber_range.server.cyber_judge import CyberJudge, EpisodeLogger
 
 
 class CyberRangeEnvironment(MCPEnvironment):
@@ -48,6 +50,8 @@ class CyberRangeEnvironment(MCPEnvironment):
         self.network = NetworkSimulator()
         self.attack_engine = AttackEngine()
         self.reward_calc = RewardCalculator()
+        self.judge = CyberJudge()
+        self.episode_logger = EpisodeLogger()
         self._state = State(episode_id=str(uuid4()), step_count=0)
         self._scenario_id: str = "script_kiddie"
         self._max_steps: int = 15
@@ -338,9 +342,73 @@ class CyberRangeEnvironment(MCPEnvironment):
                 "network_summary": self._build_status_summary(),
             }
 
+
+        @mcp.tool
+        def save_playbook(name: str, description: str, steps: list) -> dict:
+            """
+            Save a successful investigation sequence as a reusable playbook.
+
+            Use this AFTER successfully resolving an incident to capture
+            the effective strategy for future similar incidents. Playbooks
+            help you respond faster to recurring attack patterns.
+
+            Args:
+                name:        Short identifier (e.g., 'ransomware_triage', 'apt_fp_first')
+                description: When to use this playbook and what scenario type it fits
+                steps:       Ordered list of tool calls that worked (e.g.,
+                             ['investigate_alert ALT-0001', 'dismiss_alert ALT-0002', 'block_ip 185.x.x.x'])
+
+            Returns:
+                Confirmation the playbook was saved and its ID
+            """
+            from cyber_range.server.playbook_store import PlaybookStore
+            store = PlaybookStore.get_instance()
+            playbook_id = store.save(
+                name=name,
+                description=description,
+                steps=steps,
+                scenario_id=self._scenario_id,
+            )
+            return {
+                "action": "save_playbook",
+                "playbook_id": playbook_id,
+                "success": True,
+                "message": f"Playbook '{name}' saved successfully (ID: {playbook_id})",
+                "reward": 0.0,
+            }
+
+        @mcp.tool
+        def search_playbooks(query: str) -> dict:
+            """
+            Search your saved playbooks for strategies matching the current situation.
+
+            Call this at the START of an episode to see if you have a proven
+            strategy for this type of incident. If a matching playbook is found,
+            follow its steps in order.
+
+            Args:
+                query: Natural language description of the current situation
+                       (e.g., 'ransomware lateral movement with false positives',
+                              'APT exfiltration database')
+
+            Returns:
+                List of matching playbooks with their steps and success rates
+            """
+            from cyber_range.server.playbook_store import PlaybookStore
+            store = PlaybookStore.get_instance()
+            matches = store.search(query, top_k=3)
+            return {
+                "action": "search_playbooks",
+                "matches_found": len(matches),
+                "playbooks": matches,
+                "tip": "Follow the steps of a matching playbook in order for best results.",
+                "reward": 0.0,
+            }
+
         # Initialize MCPEnvironment with our tool server
         super().__init__(mcp)
         self._last_action_result = None
+
 
     # ========================================================================
     # OpenEnv API: reset / step / state
@@ -382,6 +450,7 @@ class CyberRangeEnvironment(MCPEnvironment):
 
         # Reset reward tracking
         self.reward_calc.reset()
+        self.episode_logger.reset()
         self._episode_done = False
         self._episode_events = []
         self._last_reward = 0.0
@@ -524,6 +593,14 @@ class CyberRangeEnvironment(MCPEnvironment):
             self._last_reward = reward
             self.attack_engine.update_metrics(self._last_action_result)
 
+            # Log to episode logger for LLM judge
+            self.episode_logger.record(
+                step=self._state.step_count,
+                action=self._last_action_result.action_type,
+                args=getattr(self._last_action_result, "action_args", {}),
+                reward=reward,
+            )
+
     def _check_done(self) -> bool:
         """Check episode termination conditions."""
         if self._episode_done:
@@ -542,6 +619,27 @@ class CyberRangeEnvironment(MCPEnvironment):
                 self._grader_result = self.attack_engine.grade_episode(
                     self.network, self._state.step_count
                 )
+                # Run LLM multi-persona judge and merge scores
+                det_score = self._grader_result.get("final_score", 0.0)
+                scenario_meta = {
+                    **self._grader_result.get("details", {}),
+                    "scenario_name": getattr(self.attack_engine.scenario, "name", ""),
+                    "difficulty": getattr(self.attack_engine.scenario, "difficulty", ""),
+                    "adversary_behavior": getattr(self.attack_engine.scenario, "adversary_behavior", ""),
+                    "threat_count": getattr(self.attack_engine.scenario, "threat_count", 0),
+                    "false_positive_count": getattr(self.attack_engine.scenario, "false_positive_count", 0),
+                    "max_steps": self._max_steps,
+                }
+                judge_result = self.judge.evaluate(
+                    self.episode_logger.to_judge_format(),
+                    scenario_meta,
+                    det_score,
+                )
+                self._grader_result["judge"] = judge_result
+                # If judge is enabled, use combined score as the primary score
+                if judge_result["judge_enabled"]:
+                    self._grader_result["final_score"] = judge_result["combined_score"]
+                    self._grader_result["deterministic_score"] = det_score
                 self._log_episode_results()
 
         return done
