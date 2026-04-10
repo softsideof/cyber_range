@@ -21,16 +21,99 @@ import os
 import re
 import sys
 import textwrap
+import time
 from typing import Any
 
 # Ensure cyber_range package is importable from project root
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from openai import OpenAI
-from openenv.core.env_server.mcp_types import CallToolAction
 
-# In-process environment (no server needed)
-from cyber_range.server.cyber_environment import CyberRangeEnvironment
+# ─────────────────────────────────────────────────────────────
+# Environment Mode Detection
+# ─────────────────────────────────────────────────────────────
+# Mode 1: In-process (when running inside the HF Space container)
+# Mode 2: Remote HTTP (when evaluator runs inference.py in a separate container)
+
+ENV_BASE_URL = os.getenv("ENV_BASE_URL", "")  # Set by evaluator
+USE_REMOTE = bool(ENV_BASE_URL)
+
+try:
+    from openenv.core.env_server.mcp_types import CallToolAction
+    from cyber_range.server.cyber_environment import CyberRangeEnvironment
+    HAS_LOCAL_ENV = True
+except ImportError:
+    HAS_LOCAL_ENV = False
+    # Define a minimal CallToolAction for remote mode
+    class CallToolAction:  # type: ignore[no-redef]
+        def __init__(self, tool_name: str, arguments: dict):
+            self.tool_name = tool_name
+            self.arguments = arguments
+
+
+class _RemoteObservation:
+    """Mimics the Observation dataclass for remote HTTP responses."""
+    def __init__(self, data: dict):
+        self.reward = data.get("reward", 0.0)
+        self.done = data.get("done", False)
+        self.metadata = data.get("metadata", data.get("observation", {}))
+        self.result = data.get("result", data.get("observation", {}))
+
+
+class RemoteEnvironment:
+    """Connects to CyberRange via HTTP when running outside the HF Space container."""
+
+    def __init__(self, base_url: str):
+        import requests
+        self._base_url = base_url.rstrip("/")
+        self._session = requests.Session()
+        self._state = {"episode_id": "", "step_count": 0, "grader_result": {}}
+
+    def reset(self, task_id: str = "script_kiddie", seed: int = 42) -> _RemoteObservation:
+        resp = self._session.post(
+            f"{self._base_url}/reset",
+            json={"task_id": task_id, "seed": seed},
+            timeout=30,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        self._state = data.get("state", self._state)
+        return _RemoteObservation(data)
+
+    def step(self, action: CallToolAction) -> _RemoteObservation:
+        resp = self._session.post(
+            f"{self._base_url}/step",
+            json={"tool_name": action.tool_name, "arguments": action.arguments},
+            timeout=30,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        self._state = data.get("state", self._state)
+        return _RemoteObservation(data)
+
+    @property
+    def state(self):
+        """Return a state-like object with grader_result."""
+        class _State:
+            pass
+        s = _State()
+        s.episode_id = self._state.get("episode_id", "")
+        s.step_count = self._state.get("step_count", 0)
+        s.grader_result = self._state.get("grader_result", {})
+        return s
+
+
+def _create_environment(task_id: str = None):
+    """Create the appropriate environment based on available mode."""
+    if USE_REMOTE:
+        return RemoteEnvironment(ENV_BASE_URL)
+    elif HAS_LOCAL_ENV:
+        return CyberRangeEnvironment()
+    else:
+        # Last resort: try the HF Space URL
+        fallback_url = "https://keshav-005-cyber-range.hf.space"
+        return RemoteEnvironment(fallback_url)
+
 
 # ─────────────────────────────────────────────────────────────
 # Environment Variables (REQUIRED by OpenEnv spec)
@@ -667,7 +750,7 @@ def run_episode(task_id: str, use_llm: bool = True) -> dict:
     print(f"[START] task={task_id} env={ENV_NAME} model={MODEL_NAME}", flush=True)
 
     try:
-        env = CyberRangeEnvironment()
+        env = _create_environment()
         obs = env.reset(task_id=task_id, seed=SEED)
 
         metadata = obs.metadata or {}
