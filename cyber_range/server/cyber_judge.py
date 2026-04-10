@@ -142,6 +142,7 @@ class CyberJudge:
 
         # Weighted combination: 70% deterministic + 30% LLM judge
         combined = round(0.70 * deterministic_score + 0.30 * llm_score, 4)
+        combined = max(0.01, min(0.99, combined))
 
         # Aggregate feedback from all personas
         verdicts = [
@@ -203,8 +204,8 @@ class CyberJudge:
         try:
             raw = self._call_llm(prompt)
             parsed = self._parse_json_response(raw)
-            # Clamp score to valid range
-            parsed["score"] = max(0.0, min(1.0, float(parsed.get("score", det_score))))
+            # Clamp score to strictly valid range (0, 1)
+            parsed["score"] = max(0.01, min(0.99, float(parsed.get("score", det_score))))
             return parsed
         except Exception as e:
             return {"score": det_score, "verdict": f"[Judge error: {e}]"}
