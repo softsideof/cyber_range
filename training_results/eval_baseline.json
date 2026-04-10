@@ -1,0 +1,598 @@
+{
+  "agent": "HeuristicSOCAgent",
+  "timestamp": 1775834156.7364888,
+  "scenarios": [
+    {
+      "scenario_id": "script_kiddie",
+      "difficulty": "easy",
+      "final_score": 0.8,
+      "deterministic_score": 0.8,
+      "episode_end_bonus": 5.0,
+      "total_episode_reward": 20.51,
+      "judge": {
+        "llm_judge_score": 0.8,
+        "combined_score": 0.8,
+        "persona_scores": {},
+        "persona_feedback": {},
+        "feedback": "LLM judge not configured (set MODEL_NAME + API_BASE_URL + HF_TOKEN).",
+        "judge_enabled": false
+      },
+      "details": {
+        "threats_neutralized": "1/1",
+        "false_positives_dismissed": "0/1",
+        "data_exfiltrated_mb": 0.0,
+        "healthy_hosts_isolated": 0,
+        "steps_used": "3/15",
+        "difficulty": "easy",
+        "adversary_behavior": "static"
+      },
+      "steps_used": 3,
+      "max_steps": 15,
+      "action_log": [
+        {
+          "step": 1,
+          "action": "observe_network",
+          "reward": 0.0
+        },
+        {
+          "step": 2,
+          "action": "investigate_alert",
+          "reward": 0.5
+        },
+        {
+          "step": 3,
+          "action": "block_ip",
+          "reward": 15.01
+        }
+      ],
+      "seed": 42,
+      "timestamp": 1775834155.7587214,
+      "avg_score": 0.8,
+      "avg_reward": 20.51
+    },
+    {
+      "scenario_id": "phishing_campaign",
+      "difficulty": "medium",
+      "final_score": 0.45,
+      "deterministic_score": 0.45,
+      "episode_end_bonus": -2.0,
+      "total_episode_reward": 86.66,
+      "judge": {
+        "llm_judge_score": 0.45,
+        "combined_score": 0.45,
+        "persona_scores": {},
+        "persona_feedback": {},
+        "feedback": "LLM judge not configured (set MODEL_NAME + API_BASE_URL + HF_TOKEN).",
+        "judge_enabled": false
+      },
+      "details": {
+        "threats_neutralized": "0/3",
+        "false_positives_dismissed": "0/2",
+        "data_exfiltrated_mb": 0.0,
+        "healthy_hosts_isolated": 0,
+        "steps_used": "11/25",
+        "difficulty": "medium",
+        "adversary_behavior": "evasive"
+      },
+      "steps_used": 11,
+      "max_steps": 25,
+      "action_log": [
+        {
+          "step": 1,
+          "action": "observe_network",
+          "reward": 0.0
+        },
+        {
+          "step": 2,
+          "action": "investigate_alert",
+          "reward": 0.5
+        },
+        {
+          "step": 3,
+          "action": "investigate_alert",
+          "reward": 0.5
+        },
+        {
+          "step": 4,
+          "action": "investigate_alert",
+          "reward": -0.3
+        },
+        {
+          "step": 5,
+          "action": "investigate_alert",
+          "reward": -0.3
+        },
+        {
+          "step": 6,
+          "action": "block_ip",
+          "reward": 15.01
+        },
+        {
+          "step": 7,
+          "action": "block_ip",
+          "reward": 14.86
+        },
+        {
+          "step": 8,
+          "action": "block_ip",
+          "reward": 14.71
+        },
+        {
+          "step": 9,
+          "action": "block_ip",
+          "reward": 14.56
+        },
+        {
+          "step": 10,
+          "action": "block_ip",
+          "reward": 14.56
+        },
+        {
+          "step": 11,
+          "action": "block_ip",
+          "reward": 14.56
+        }
+      ],
+      "seed": 42,
+      "timestamp": 1775834155.9373317,
+      "avg_score": 0.45,
+      "avg_reward": 86.66
+    },
+    {
+      "scenario_id": "apt_lateral_movement",
+      "difficulty": "hard",
+      "final_score": 0.42,
+      "deterministic_score": 0.42,
+      "episode_end_bonus": -2.0,
+      "total_episode_reward": 124.98,
+      "judge": {
+        "llm_judge_score": 0.42,
+        "combined_score": 0.42,
+        "persona_scores": {},
+        "persona_feedback": {},
+        "feedback": "LLM judge not configured (set MODEL_NAME + API_BASE_URL + HF_TOKEN).",
+        "judge_enabled": false
+      },
+      "details": {
+        "threats_neutralized": "0/5",
+        "false_positives_dismissed": "3/3",
+        "data_exfiltrated_mb": 30.0,
+        "healthy_hosts_isolated": 0,
+        "steps_used": "19/35",
+        "difficulty": "hard",
+        "adversary_behavior": "evasive"
+      },
+      "steps_used": 19,
+      "max_steps": 35,
+      "action_log": [
+        {
+          "step": 1,
+          "action": "observe_network",
+          "reward": 0.0
+        },
+        {
+          "step": 2,
+          "action": "investigate_alert",
+          "reward": 0.5
+        },
+        {
+          "step": 3,
+          "action": "block_ip",
+          "reward": 15.01
+        },
+        {
+          "step": 4,
+          "action": "investigate_alert",
+          "reward": -0.3
+        },
+        {
+          "step": 5,
+          "action": "investigate_alert",
+          "reward": -0.3
+        },
+        {
+          "step": 6,
+          "action": "investigate_alert",
+          "reward": -0.3
+        },
+        {
+          "step": 7,
+          "action": "block_ip",
+          "reward": 14.86
+        },
+        {
+          "step": 8,
+          "action": "block_ip",
+          "reward": 14.71
+        },
+        {
+          "step": 9,
+          "action": "block_ip",
+          "reward": 14.56
+        },
+        {
+          "step": 10,
+          "action": "block_ip",
+          "reward": 14.56
+        },
+        {
+          "step": 11,
+          "action": "block_ip",
+          "reward": 14.56
+        },
+        {
+          "step": 12,
+          "action": "block_ip",
+          "reward": 14.56
+        },
+        {
+          "step": 13,
+          "action": "block_ip",
+          "reward": 14.56
+        },
+        {
+          "step": 14,
+          "action": "dismiss_alert",
+          "reward": 3.0
+        },
+        {
+          "step": 15,
+          "action": "dismiss_alert",
+          "reward": 3.0
+        },
+        {
+          "step": 16,
+          "action": "dismiss_alert",
+          "reward": 3.0
+        },
+        {
+          "step": 17,
+          "action": "observe_network",
+          "reward": 0.0
+        },
+        {
+          "step": 18,
+          "action": "investigate_alert",
+          "reward": 0.5
+        },
+        {
+          "step": 19,
+          "action": "investigate_alert",
+          "reward": 0.5
+        }
+      ],
+      "seed": 42,
+      "timestamp": 1775834156.083841,
+      "avg_score": 0.42,
+      "avg_reward": 124.98
+    },
+    {
+      "scenario_id": "ransomware_outbreak",
+      "difficulty": "hard",
+      "final_score": 0.65,
+      "deterministic_score": 0.65,
+      "episode_end_bonus": -2.0,
+      "total_episode_reward": 89.46,
+      "judge": {
+        "llm_judge_score": 0.65,
+        "combined_score": 0.65,
+        "persona_scores": {},
+        "persona_feedback": {},
+        "feedback": "LLM judge not configured (set MODEL_NAME + API_BASE_URL + HF_TOKEN).",
+        "judge_enabled": false
+      },
+      "details": {
+        "threats_neutralized": "0/4",
+        "false_positives_dismissed": "1/1",
+        "data_exfiltrated_mb": 0.0,
+        "healthy_hosts_isolated": 0,
+        "steps_used": "10/20",
+        "difficulty": "hard",
+        "adversary_behavior": "persistent"
+      },
+      "steps_used": 10,
+      "max_steps": 20,
+      "action_log": [
+        {
+          "step": 1,
+          "action": "observe_network",
+          "reward": 0.0
+        },
+        {
+          "step": 2,
+          "action": "investigate_alert",
+          "reward": 0.5
+        },
+        {
+          "step": 3,
+          "action": "investigate_alert",
+          "reward": -0.3
+        },
+        {
+          "step": 4,
+          "action": "dismiss_alert",
+          "reward": 3.0
+        },
+        {
+          "step": 5,
+          "action": "block_ip",
+          "reward": 15.01
+        },
+        {
+          "step": 6,
+          "action": "block_ip",
+          "reward": 14.86
+        },
+        {
+          "step": 7,
+          "action": "block_ip",
+          "reward": 14.71
+        },
+        {
+          "step": 8,
+          "action": "block_ip",
+          "reward": 14.56
+        },
+        {
+          "step": 9,
+          "action": "block_ip",
+          "reward": 14.56
+        },
+        {
+          "step": 10,
+          "action": "block_ip",
+          "reward": 14.56
+        }
+      ],
+      "seed": 42,
+      "timestamp": 1775834156.1702116,
+      "avg_score": 0.65,
+      "avg_reward": 89.46
+    },
+    {
+      "scenario_id": "supply_chain_compromise",
+      "difficulty": "hard",
+      "final_score": 0.42,
+      "deterministic_score": 0.42,
+      "episode_end_bonus": -2.0,
+      "total_episode_reward": 121.78,
+      "judge": {
+        "llm_judge_score": 0.42,
+        "combined_score": 0.42,
+        "persona_scores": {},
+        "persona_feedback": {},
+        "feedback": "LLM judge not configured (set MODEL_NAME + API_BASE_URL + HF_TOKEN).",
+        "judge_enabled": false
+      },
+      "details": {
+        "threats_neutralized": "0/4",
+        "false_positives_dismissed": "2/2",
+        "data_exfiltrated_mb": 48.0,
+        "healthy_hosts_isolated": 0,
+        "steps_used": "16/30",
+        "difficulty": "hard",
+        "adversary_behavior": "evasive"
+      },
+      "steps_used": 16,
+      "max_steps": 30,
+      "action_log": [
+        {
+          "step": 1,
+          "action": "observe_network",
+          "reward": 0.0
+        },
+        {
+          "step": 2,
+          "action": "investigate_alert",
+          "reward": 0.5
+        },
+        {
+          "step": 3,
+          "action": "investigate_alert",
+          "reward": -0.3
+        },
+        {
+          "step": 4,
+          "action": "dismiss_alert",
+          "reward": 3.0
+        },
+        {
+          "step": 5,
+          "action": "investigate_alert",
+          "reward": -0.3
+        },
+        {
+          "step": 6,
+          "action": "dismiss_alert",
+          "reward": 3.0
+        },
+        {
+          "step": 7,
+          "action": "block_ip",
+          "reward": 15.01
+        },
+        {
+          "step": 8,
+          "action": "block_ip",
+          "reward": 14.86
+        },
+        {
+          "step": 9,
+          "action": "block_ip",
+          "reward": 14.71
+        },
+        {
+          "step": 10,
+          "action": "block_ip",
+          "reward": 14.56
+        },
+        {
+          "step": 11,
+          "action": "block_ip",
+          "reward": 14.56
+        },
+        {
+          "step": 12,
+          "action": "block_ip",
+          "reward": 14.56
+        },
+        {
+          "step": 13,
+          "action": "block_ip",
+          "reward": 14.56
+        },
+        {
+          "step": 14,
+          "action": "block_ip",
+          "reward": 14.56
+        },
+        {
+          "step": 15,
+          "action": "observe_network",
+          "reward": 0.0
+        },
+        {
+          "step": 16,
+          "action": "investigate_alert",
+          "reward": 0.5
+        }
+      ],
+      "seed": 42,
+      "timestamp": 1775834156.360239,
+      "avg_score": 0.42,
+      "avg_reward": 121.78
+    },
+    {
+      "scenario_id": "insider_threat_apt",
+      "difficulty": "nightmare",
+      "final_score": 0.4,
+      "deterministic_score": 0.4,
+      "episode_end_bonus": -2.0,
+      "total_episode_reward": 124.98,
+      "judge": {
+        "llm_judge_score": 0.4,
+        "combined_score": 0.4,
+        "persona_scores": {},
+        "persona_feedback": {},
+        "feedback": "LLM judge not configured (set MODEL_NAME + API_BASE_URL + HF_TOKEN).",
+        "judge_enabled": false
+      },
+      "details": {
+        "threats_neutralized": "0/7",
+        "false_positives_dismissed": "3/4",
+        "data_exfiltrated_mb": 84.0,
+        "healthy_hosts_isolated": 0,
+        "steps_used": "19/45",
+        "difficulty": "nightmare",
+        "adversary_behavior": "adaptive"
+      },
+      "steps_used": 19,
+      "max_steps": 45,
+      "action_log": [
+        {
+          "step": 1,
+          "action": "observe_network",
+          "reward": 0.0
+        },
+        {
+          "step": 2,
+          "action": "investigate_alert",
+          "reward": 0.5
+        },
+        {
+          "step": 3,
+          "action": "investigate_alert",
+          "reward": 0.5
+        },
+        {
+          "step": 4,
+          "action": "investigate_alert",
+          "reward": -0.3
+        },
+        {
+          "step": 5,
+          "action": "investigate_alert",
+          "reward": -0.3
+        },
+        {
+          "step": 6,
+          "action": "investigate_alert",
+          "reward": -0.3
+        },
+        {
+          "step": 7,
+          "action": "block_ip",
+          "reward": 15.01
+        },
+        {
+          "step": 8,
+          "action": "block_ip",
+          "reward": 14.86
+        },
+        {
+          "step": 9,
+          "action": "block_ip",
+          "reward": 14.71
+        },
+        {
+          "step": 10,
+          "action": "block_ip",
+          "reward": 14.56
+        },
+        {
+          "step": 11,
+          "action": "block_ip",
+          "reward": 14.56
+        },
+        {
+          "step": 12,
+          "action": "block_ip",
+          "reward": 14.56
+        },
+        {
+          "step": 13,
+          "action": "block_ip",
+          "reward": 14.56
+        },
+        {
+          "step": 14,
+          "action": "block_ip",
+          "reward": 14.56
+        },
+        {
+          "step": 15,
+          "action": "dismiss_alert",
+          "reward": 3.0
+        },
+        {
+          "step": 16,
+          "action": "dismiss_alert",
+          "reward": 3.0
+        },
+        {
+          "step": 17,
+          "action": "dismiss_alert",
+          "reward": 3.0
+        },
+        {
+          "step": 18,
+          "action": "observe_network",
+          "reward": 0.0
+        },
+        {
+          "step": 19,
+          "action": "investigate_alert",
+          "reward": 0.5
+        }
+      ],
+      "seed": 42,
+      "timestamp": 1775834156.7086177,
+      "avg_score": 0.4,
+      "avg_reward": 124.98
+    }
+  ],
+  "summary": {
+    "avg_score": 0.5233333333333333,
+    "avg_reward": 94.72833333333334
+  }
+}

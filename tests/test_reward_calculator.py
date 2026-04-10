@@ -173,12 +173,18 @@ class TestShapedRewards:
         assert reward > 0
 
     def test_attack_chain_resolved_bonus(self, calc):
+        # First call investigate_alert so containment gets phase-order BONUS not penalty
+        calc.calculate(ActionResult(
+            action_type="investigate_alert", success=True,
+            description="Investigated first",
+        ))
         result = ActionResult(
             action_type="isolate_host", success=True,
             description="Chain resolved",
             attack_chain_resolved=True,
         )
         reward = calc.calculate(result)
+        # 25 (chain) + 0.2 (phase-order bonus) + resource = ~25.2
         assert reward >= 25.0  # Big bonus for full chain resolution
 
 
@@ -203,7 +209,9 @@ class TestCumulativeReward:
         )
         calc.calculate(r1)
         calc.calculate(r2)
-        assert calc.cumulative_reward == 6.0  # 3.0 + 3.0
+        # dismiss_alert repeated — no repeat penalty (exempted)
+        # 3.0 + 3.0 = 6.0
+        assert calc.cumulative_reward == 6.0
 
     def test_reset_clears_cumulative(self, calc):
         r = ActionResult(

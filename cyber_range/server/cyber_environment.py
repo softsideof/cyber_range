@@ -619,6 +619,17 @@ class CyberRangeEnvironment(MCPEnvironment):
                 self._grader_result = self.attack_engine.grade_episode(
                     self.network, self._state.step_count
                 )
+                # Apply episode-end efficiency bonus / timeout penalty
+                metrics = self.attack_engine.metrics
+                end_bonus = self.reward_calc.apply_episode_end_bonuses(
+                    threats_neutralized=metrics.threats_neutralized,
+                    total_threats=metrics.total_threats,
+                    steps_used=self._state.step_count,
+                    max_steps=self._max_steps,
+                )
+                self._grader_result["episode_end_bonus"] = end_bonus
+                self._grader_result["total_episode_reward"] = self.reward_calc.cumulative_reward
+
                 # Run LLM multi-persona judge and merge scores
                 det_score = self._grader_result.get("final_score", 0.0)
                 scenario_meta = {
