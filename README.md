@@ -16,7 +16,7 @@ Within 3 steps, it learned to dismiss false positives before blocking IPs. By ep
 
 **This is CyberRange** — a self-improving environment where an RL agent learns SOC incident response through adversarial attack generation, curriculum-driven difficulty, and GRPO training.
 
-> Built with [OpenEnv v0.2.2](https://github.com/meta-pytorch/OpenEnv) | Deployed on [HF Spaces](https://huggingface.co/spaces/keshav-005/cyber_range) | Training via [HF TRL](https://github.com/huggingface/trl)
+> Built with [OpenEnv v0.2.2](https://github.com/meta-pytorch/OpenEnv) | Deployed on [HF Spaces](https://huggingface.co/spaces/keshav-005/cyber_range) | Training via [HF TRL](https://github.com/huggingface/trl) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/softsideof/cyber_range/blob/main/CyberRange_GRPO_Training.ipynb)
 
 ---
 
