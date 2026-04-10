@@ -83,6 +83,18 @@ tasks:
       shares. Contain the outbreak before critical infrastructure is
       encrypted. Time is critical — the encryption spreads each step.
 
+  - id: supply_chain_compromise
+    name: Supply Chain Attack
+    difficulty: hard
+    max_steps: 30
+    threat_count: 4
+    false_positive_count: 2
+    description: >
+      A trojanized software update has been deployed to your application
+      server (app-01) via a compromised third-party vendor. The malware
+      establishes a C2 channel and begins exfiltrating data. Detect the
+      compromised package, block C2 communication, and restore the host.
+
   - id: insider_threat_apt
     name: Insider + External APT
     difficulty: nightmare
