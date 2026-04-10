@@ -56,40 +56,83 @@ class _RemoteObservation:
     def __init__(self, data: dict):
         self.reward = data.get("reward", 0.0)
         self.done = data.get("done", False)
-        self.metadata = data.get("metadata", data.get("observation", {}))
-        self.result = data.get("result", data.get("observation", {}))
+
+        # The observation may be nested in different ways depending on
+        # the OpenEnv server version. Handle all cases.
+        obs = data.get("observation", {})
+
+        # Extract structured metadata from MCP content format
+        if isinstance(obs, dict) and "result" in obs:
+            result = obs["result"]
+            if isinstance(result, dict) and "content" in result:
+                content = result.get("content", [])
+                if content and isinstance(content, list):
+                    text = content[0].get("text", "{}") if isinstance(content[0], dict) else "{}"
+                    try:
+                        import json
+                        parsed = json.loads(text)
+                        self.metadata = parsed
+                        self.result = parsed
+                        return
+                    except (json.JSONDecodeError, TypeError):
+                        pass
+            # Try structured_content
+            if isinstance(result, dict) and "structured_content" in result:
+                self.metadata = result["structured_content"]
+                self.result = result["structured_content"]
+                return
+
+        self.metadata = data.get("metadata", obs)
+        self.result = data.get("result", obs)
 
 
 class RemoteEnvironment:
-    """Connects to CyberRange via HTTP when running outside the HF Space container."""
+    """Connects to CyberRange via HTTP when running outside the HF Space container.
+
+    Compatible with the OpenEnv HTTP server API:
+    - POST /reset  → {"kwargs": {"task_id": ..., "seed": ...}}
+    - POST /step   → {"action": {"tool_name": ..., "arguments": ...}}
+    - GET  /state  → {"episode_id": ..., "grader_result": ...}
+    """
 
     def __init__(self, base_url: str):
-        import requests
+        import requests as _requests
+        self._requests = _requests
         self._base_url = base_url.rstrip("/")
-        self._session = requests.Session()
-        self._state = {"episode_id": "", "step_count": 0, "grader_result": {}}
+        self._session = _requests.Session()
+        self._state_data: dict = {"episode_id": "", "step_count": 0, "grader_result": {}}
 
     def reset(self, task_id: str = "script_kiddie", seed: int = 42) -> _RemoteObservation:
         resp = self._session.post(
             f"{self._base_url}/reset",
-            json={"task_id": task_id, "seed": seed},
+            json={"kwargs": {"task_id": task_id, "seed": seed}},
             timeout=30,
         )
         resp.raise_for_status()
         data = resp.json()
-        self._state = data.get("state", self._state)
+        # Fetch state for metadata
+        self._fetch_state()
         return _RemoteObservation(data)
 
     def step(self, action: CallToolAction) -> _RemoteObservation:
         resp = self._session.post(
             f"{self._base_url}/step",
-            json={"tool_name": action.tool_name, "arguments": action.arguments},
+            json={"action": {"tool_name": action.tool_name, "arguments": action.arguments}},
             timeout=30,
         )
         resp.raise_for_status()
         data = resp.json()
-        self._state = data.get("state", self._state)
+        self._fetch_state()
         return _RemoteObservation(data)
+
+    def _fetch_state(self):
+        """Fetch the latest state from /state endpoint."""
+        try:
+            resp = self._session.get(f"{self._base_url}/state", timeout=10)
+            if resp.ok:
+                self._state_data = resp.json()
+        except Exception:
+            pass
 
     @property
     def state(self):
@@ -97,9 +140,9 @@ class RemoteEnvironment:
         class _State:
             pass
         s = _State()
-        s.episode_id = self._state.get("episode_id", "")
-        s.step_count = self._state.get("step_count", 0)
-        s.grader_result = self._state.get("grader_result", {})
+        s.episode_id = self._state_data.get("episode_id", "")
+        s.step_count = self._state_data.get("step_count", 0)
+        s.grader_result = self._state_data.get("grader_result", {})
         return s
 
 
