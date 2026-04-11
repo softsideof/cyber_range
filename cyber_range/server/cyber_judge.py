@@ -207,10 +207,10 @@ class CyberJudge:
             raw = self._call_llm(prompt)
             parsed = self._parse_json_response(raw)
             # Clamp score to strictly (0, 1) — validator rejects 0.0 and 1.0
-            parsed["score"] = max(0.001, min(0.999, float(parsed.get("score", det_score))))
+            parsed["score"] = max(0.01, min(0.99, float(parsed.get("score", det_score))))
             return parsed
         except Exception as e:
-            return {"score": max(0.001, min(0.999, det_score)), "verdict": f"[Judge error: {e}]"}
+            return {"score": max(0.01, min(0.99, det_score)), "verdict": f"[Judge error: {e}]"}
 
     def _call_llm(self, user_prompt: str) -> str:
         """Call the LLM API (OpenAI-compatible)."""
@@ -270,7 +270,7 @@ class CyberJudge:
 
     def _fallback(self, det_score: float) -> dict:
         """Return fallback result when LLM is not configured."""
-        safe_score = max(0.001, min(0.999, det_score))
+        safe_score = max(0.01, min(0.99, det_score))
         return {
             "llm_judge_score": safe_score,
             "combined_score": safe_score,

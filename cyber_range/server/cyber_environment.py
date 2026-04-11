@@ -374,7 +374,7 @@ class CyberRangeEnvironment(MCPEnvironment):
                 "playbook_id": playbook_id,
                 "success": True,
                 "message": f"Playbook '{name}' saved successfully (ID: {playbook_id})",
-                "reward": 0.0,
+                "reward": 0.01,
             }
 
         @mcp.tool
@@ -402,7 +402,7 @@ class CyberRangeEnvironment(MCPEnvironment):
                 "matches_found": len(matches),
                 "playbooks": matches,
                 "tip": "Follow the steps of a matching playbook in order for best results.",
-                "reward": 0.0,
+                "reward": 0.01,
             }
 
         # Initialize MCPEnvironment with our tool server
