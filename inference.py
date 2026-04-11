@@ -756,7 +756,15 @@ def format_observation(obs_data: Any, step: int, max_steps: int) -> str:
 def format_action_str(tool_name: str, tool_args: dict) -> str:
     """Format an action as a single-line string for [STEP] output."""
     if tool_args:
-        args_str = ",".join(f"'{v}'" if isinstance(v, str) else str(v) for v in tool_args.values())
+        # Sanitize single items to heavily prevent newlines breaking regex
+        sanitized_args = []
+        for v in tool_args.values():
+            if isinstance(v, str):
+                v_clean = v.replace("\n", " ").replace("\r", "")
+                sanitized_args.append(f"'{v_clean}'")
+            else:
+                sanitized_args.append(str(v))
+        args_str = ",".join(sanitized_args)
         return f"{tool_name}({args_str})"
     return f"{tool_name}()"
 
