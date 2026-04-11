@@ -656,6 +656,12 @@ class CyberRangeEnvironment(MCPEnvironment):
                 if judge_result["judge_enabled"]:
                     self._grader_result["final_score"] = judge_result["combined_score"]
                     self._grader_result["deterministic_score"] = det_score
+
+                # Final safety net: recursively sanitize ALL numeric values
+                # in grader_result to strictly (0, 1) before validator sees it
+                self._grader_result = self.attack_engine._sanitize_scores(
+                    self._grader_result
+                )
                 self._log_episode_results()
 
         return done

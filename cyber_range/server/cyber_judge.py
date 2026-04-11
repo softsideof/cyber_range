@@ -139,9 +139,12 @@ class CyberJudge:
             if isinstance(r.get("score"), (int, float))
         ]
         llm_score = sum(valid_scores) / len(valid_scores) if valid_scores else deterministic_score
+        # Clamp to strictly (0, 1)
+        llm_score = max(0.001, min(0.999, llm_score))
 
         # Weighted combination: 70% deterministic + 30% LLM judge
         combined = round(0.70 * deterministic_score + 0.30 * llm_score, 4)
+        combined = max(0.001, min(0.999, combined))
 
         # Aggregate feedback from all personas
         verdicts = [
@@ -152,10 +155,10 @@ class CyberJudge:
         feedback = " | ".join(verdicts)
 
         return {
-            "llm_judge_score": round(llm_score, 4),
-            "combined_score": combined,
+            "llm_judge_score": round(max(0.001, min(0.999, llm_score)), 4),
+            "combined_score": round(max(0.001, min(0.999, combined)), 4),
             "persona_scores": {
-                name: r.get("score", 0.0)
+                name: max(0.001, min(0.999, float(r.get("score", 0.5))))
                 for name, r in persona_results.items()
             },
             "persona_feedback": {
@@ -203,11 +206,11 @@ class CyberJudge:
         try:
             raw = self._call_llm(prompt)
             parsed = self._parse_json_response(raw)
-            # Clamp score to valid range
-            parsed["score"] = max(0.0, min(1.0, float(parsed.get("score", det_score))))
+            # Clamp score to strictly (0, 1) — validator rejects 0.0 and 1.0
+            parsed["score"] = max(0.001, min(0.999, float(parsed.get("score", det_score))))
             return parsed
         except Exception as e:
-            return {"score": det_score, "verdict": f"[Judge error: {e}]"}
+            return {"score": max(0.001, min(0.999, det_score)), "verdict": f"[Judge error: {e}]"}
 
     def _call_llm(self, user_prompt: str) -> str:
         """Call the LLM API (OpenAI-compatible)."""
@@ -267,9 +270,10 @@ class CyberJudge:
 
     def _fallback(self, det_score: float) -> dict:
         """Return fallback result when LLM is not configured."""
+        safe_score = max(0.001, min(0.999, det_score))
         return {
-            "llm_judge_score": det_score,
-            "combined_score": det_score,
+            "llm_judge_score": safe_score,
+            "combined_score": safe_score,
             "persona_scores": {},
             "persona_feedback": {},
             "feedback": "LLM judge not configured (set MODEL_NAME + API_BASE_URL + HF_TOKEN).",

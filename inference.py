@@ -916,7 +916,7 @@ def run_episode(task_id: str, use_llm: bool = True) -> dict:
         success = final_score >= 0.3
 
     except Exception:
-        grader_result = {"final_score": 0.0}
+        grader_result = {"final_score": 0.01}
         # Make sure we have at least one reward entry
         if not rewards:
             rewards.append(0.0)
