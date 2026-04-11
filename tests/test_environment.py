@@ -51,7 +51,7 @@ class TestReset:
 
     def test_reset_reward_is_zero(self, env):
         obs = env.reset(task_id="script_kiddie", seed=SEED)
-        assert obs.reward == 0.0
+        assert obs.reward is None
 
     def test_reset_metadata_is_dict(self, env):
         obs = env.reset(task_id="script_kiddie", seed=SEED)
@@ -182,7 +182,7 @@ class TestState:
 
     def test_state_tracks_health_score(self, env_easy):
         state = env_easy.state
-        assert 0.0 <= state.health_score <= 1.0
+        assert 0.0 <= float(state.health_score) <= 1.0
 
     def test_state_tracks_threat_level(self, env_easy):
         state = env_easy.state
@@ -265,6 +265,6 @@ class TestEpisodeLifecycle:
         # Now reset
         obs = env.reset(task_id="phishing_campaign", seed=SEED)
         assert obs.done is False
-        assert obs.reward == 0.0
+        assert obs.reward is None
         assert env.state.step_count == 0
         assert env.state.scenario_id == "phishing_campaign"
