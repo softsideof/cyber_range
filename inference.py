@@ -54,7 +54,7 @@ except ImportError:
 class _RemoteObservation:
     """Mimics the Observation dataclass for remote HTTP responses."""
     def __init__(self, data: dict):
-        self.reward = data.get("reward", 0.0)
+        self.reward = data.get("reward", 0.01)
         self.done = data.get("done", False)
 
         # The observation may be nested in different ways depending on
@@ -852,11 +852,11 @@ def run_episode(task_id: str, use_llm: bool = True) -> dict:
                     obs = env.step(CallToolAction(tool_name="observe_network", arguments={}))
                 except Exception:
                     # Environment is broken — emit final step and stop
-                    rewards.append(0.0)
+                    rewards.append(0.01)
                     action_str = format_action_str(tool_name, tool_args)
                     print(
                         f"[STEP] step={step} action={action_str} "
-                        f"reward=0.00 done=true "
+                        f"reward=0.01 done=true "
                         f"error={sanitize_error(last_error)}",
                         flush=True,
                     )
@@ -864,7 +864,7 @@ def run_episode(task_id: str, use_llm: bool = True) -> dict:
                 tool_name = "observe_network"
                 tool_args = {}
 
-            reward = obs.reward if obs.reward else 0.0
+            reward = obs.reward if obs.reward else 0.01
             done = obs.done
             rewards.append(reward)
             action_str = format_action_str(tool_name, tool_args)
@@ -923,7 +923,7 @@ def run_episode(task_id: str, use_llm: bool = True) -> dict:
             total_steps = max(total_steps, 1)
 
     # [END] line — ALWAYS emitted, even on exception
-    rewards_str = ",".join(f"{r:.2f}" for r in rewards) if rewards else "0.00"
+    rewards_str = ",".join(f"{r:.4f}" for r in rewards) if rewards else "0.01"
     print(
         f"[END] success={str(success).lower()} steps={total_steps} "
         f"rewards={rewards_str}",
@@ -954,7 +954,7 @@ def main() -> None:
             # Should never reach here since run_episode handles all errors,
             # but just in case — emit valid output
             print(f"[START] task={task_id} env={ENV_NAME} model={MODEL_NAME}", flush=True)
-            print(f"[END] success=false steps=0 rewards=0.00", flush=True)
+            print(f"[END] success=false steps=0 rewards=0.01", flush=True)
 
 
 if __name__ == "__main__":

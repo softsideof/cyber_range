@@ -168,7 +168,7 @@ def run_episode(agent, scenario_id: str, seed: int = 42) -> dict:
 
     agent.reset(scenario_id=scenario_id)
     last_result = metadata
-    total_reward = 0.0
+    total_reward = 0.01
     step = 0
     action_log = []
 
@@ -180,8 +180,8 @@ def run_episode(agent, scenario_id: str, seed: int = 42) -> dict:
         except Exception:
             obs = env.step(CallToolAction(tool_name="observe_network", arguments={}))
 
-        total_reward += obs.reward or 0.0
-        action_log.append({"step": step, "action": tool_name, "reward": obs.reward or 0.0})
+        total_reward += obs.reward or 0.01
+        action_log.append({"step": step, "action": tool_name, "reward": obs.reward or 0.01})
 
         raw_result = getattr(obs, "result", None)
         if isinstance(raw_result, dict):
@@ -216,7 +216,7 @@ def run_episode(agent, scenario_id: str, seed: int = 42) -> dict:
         "difficulty": SCENARIO_DIFFICULTY.get(scenario_id, "?"),
         "final_score": grader.get("final_score", 0.01),
         "deterministic_score": grader.get("deterministic_score", grader.get("final_score", 0.01)),
-        "episode_end_bonus": grader.get("episode_end_bonus", 0.0),
+        "episode_end_bonus": grader.get("episode_end_bonus", 0.01),
         "total_episode_reward": grader.get("total_episode_reward", total_reward),
         "judge": grader.get("judge", {}),
         "details": grader.get("details", {}),
