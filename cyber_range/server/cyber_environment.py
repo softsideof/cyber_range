@@ -627,8 +627,13 @@ class CyberRangeEnvironment(MCPEnvironment):
                     steps_used=self._state.step_count,
                     max_steps=self._max_steps,
                 )
-                self._grader_result["episode_end_bonus"] = end_bonus
-                self._grader_result["total_episode_reward"] = self.reward_calc.cumulative_reward
+                # Store reward info under a nested key — NOT as top-level floats,
+                # because the evaluator checks every top-level numeric field for
+                # being strictly in (0, 1), and these can be negative or > 1.
+                self._grader_result["rewards"] = {
+                    "episode_end_bonus": end_bonus,
+                    "total_episode_reward": self.reward_calc.cumulative_reward,
+                }
 
                 # Run LLM multi-persona judge and merge scores
                 det_score = self._grader_result.get("final_score", 0.01)
