@@ -55,7 +55,7 @@ def run_scenario(scenario_id: str, seed: int = 42) -> dict:
     # Final
     state = env.state
     grader = getattr(state, "grader_result", None) or {}
-    score = grader.get("final_score", 0.0)
+    score = grader.get("final_score", 0.01)
     print(f"  Result: score={score:.2f} | steps={state.step_count}")
     return grader
 
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     scores = {}
     for scenario_id in SCENARIOS:
         result = run_scenario(scenario_id)
-        scores[scenario_id] = result.get("final_score", 0.0)
+        scores[scenario_id] = result.get("final_score", 0.01)
 
     print(f"\n{'='*60}")
     print("  Summary")
@@ -76,3 +76,4 @@ if __name__ == "__main__":
         bar = "#" * int(score * 20) + "-" * (20 - int(score * 20))
         print(f"  {sid:30s} {bar} {score:.2f}")
     print(f"\n  Average: {sum(scores.values()) / len(scores):.2f}")
+

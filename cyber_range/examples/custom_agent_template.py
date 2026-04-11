@@ -25,8 +25,9 @@ def main():
         step += 1
 
     grader = getattr(env.state, "grader_result", {})
-    print(f"Score: {grader.get('final_score', 0.0)}")
+    print(f"Score: {grader.get('final_score', 0.01)}")
 
 
 if __name__ == "__main__":
     main()
+

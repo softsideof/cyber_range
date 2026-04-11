@@ -214,8 +214,8 @@ def run_episode(agent, scenario_id: str, seed: int = 42) -> dict:
     return {
         "scenario_id": scenario_id,
         "difficulty": SCENARIO_DIFFICULTY.get(scenario_id, "?"),
-        "final_score": grader.get("final_score", 0.0),
-        "deterministic_score": grader.get("deterministic_score", grader.get("final_score", 0.0)),
+        "final_score": grader.get("final_score", 0.01),
+        "deterministic_score": grader.get("deterministic_score", grader.get("final_score", 0.01)),
         "episode_end_bonus": grader.get("episode_end_bonus", 0.0),
         "total_episode_reward": grader.get("total_episode_reward", total_reward),
         "judge": grader.get("judge", {}),
@@ -389,3 +389,4 @@ Examples:
 
 if __name__ == "__main__":
     main()
+

@@ -46,7 +46,8 @@ for task_id in TASKS:
             break
 
     grader = getattr(env.state, "grader_result", {})
-    score = grader.get("final_score", 0.0)
+    score = grader.get("final_score", 0.01)
     print(f"  {task_id:<25} score={score:.3f}")
 
 print()
+

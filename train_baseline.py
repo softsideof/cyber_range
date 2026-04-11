@@ -234,7 +234,7 @@ def _run_episode_with_completion(completion: str, scenario_id: str, seed: int) -
     # Get final graded score
     state = env.state
     grader = getattr(state, "grader_result", None) or {}
-    return grader.get("final_score", 0.0)
+    return grader.get("final_score", 0.01)
 
 
 def _parse_action_sequence(completion: str) -> list[tuple[str, dict]]:
@@ -539,8 +539,8 @@ def evaluate_agent(agent, scenario_id: str, seed: int = 42) -> dict:
 
     return {
         "scenario_id": scenario_id,
-        "final_score": grader_result.get("final_score", 0.0),
-        "deterministic_score": grader_result.get("deterministic_score", grader_result.get("final_score", 0.0)),
+        "final_score": grader_result.get("final_score", 0.01),
+        "deterministic_score": grader_result.get("deterministic_score", grader_result.get("final_score", 0.01)),
         "judge_result": grader_result.get("judge", {}),
         "cumulative_reward": total_reward,
         "details": grader_result.get("details", {}),
@@ -736,3 +736,4 @@ Examples:
 
 if __name__ == "__main__":
     main()
+

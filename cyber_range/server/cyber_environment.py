@@ -631,7 +631,7 @@ class CyberRangeEnvironment(MCPEnvironment):
                 self._grader_result["total_episode_reward"] = self.reward_calc.cumulative_reward
 
                 # Run LLM multi-persona judge and merge scores
-                det_score = self._grader_result.get("final_score", 0.0)
+                det_score = self._grader_result.get("final_score", 0.01)
                 scenario_meta = {
                     **self._grader_result.get("details", {}),
                     "scenario_name": getattr(self.attack_engine.scenario, "name", ""),
@@ -714,3 +714,4 @@ class CyberRangeEnvironment(MCPEnvironment):
             "episode_done": self._episode_done,
             "cumulative_reward": self.reward_calc.cumulative_reward,
         }
+

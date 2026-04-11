@@ -885,7 +885,7 @@ class AttackEngine:
         Grading is deterministic given the same episode outcome.
         """
         if not self.scenario:
-            return {"final_score": 0.01, "error": "No scenario loaded"}
+            return {"final_score": 0.0, "error": "No scenario loaded"}
 
         scores: dict[str, float] = {}
         max_steps = self.scenario.max_steps
@@ -945,8 +945,7 @@ class AttackEngine:
 
         # --- Final Score ---
         final_score = sum(scores.values())
-        # Clamp to strictly (0, 1) — evaluator rejects 0.0 and 1.0
-        scores["final_score"] = round(min(0.99, max(0.01, final_score)), 3)
+        scores["final_score"] = round(min(1.0, max(0.0, final_score)), 3)
 
         scores["details"] = {
             "threats_neutralized": f"{self.metrics.threats_neutralized}/{self.metrics.total_threats}",

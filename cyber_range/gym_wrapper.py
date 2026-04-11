@@ -160,7 +160,7 @@ class CyberRangeGymEnv(_BaseEnv):
         if terminated or truncated:
             state = self._env.state
             grader = getattr(state, "grader_result", None) or {}
-            info["final_score"] = grader.get("final_score", 0.0)
+            info["final_score"] = grader.get("final_score", 0.01)
             info["grader_result"] = grader
             info["mitre_coverage"] = grader.get("mitre_coverage", {})
 
@@ -253,3 +253,4 @@ def make_env(
             "Install with: pip install gymnasium>=0.29.1"
         )
     return CyberRangeGymEnv(task_id=task_id, seed=seed, render_mode=render_mode)
+

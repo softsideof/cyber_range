@@ -201,7 +201,7 @@ def run_scenario_demo(scenario_id: str, console=None, slow_mode=True):
     # Get grading result
     state = env.state
     grader_result = getattr(state, "grader_result", None) or {}
-    final_score = grader_result.get("final_score", 0.0)
+    final_score = grader_result.get("final_score", 0.01)
     mitre = grader_result.get("mitre_coverage", {})
     details = grader_result.get("details", {})
 
@@ -356,3 +356,4 @@ Examples:
 
 if __name__ == "__main__":
     main()
+
