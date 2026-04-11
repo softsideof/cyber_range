@@ -879,11 +879,11 @@ class AttackEngine:
 
     @staticmethod
     def _sanitize_scores(obj: any) -> any:
-        """Recursively clamp every FLOAT value in a nested structure to strictly [0.01, 0.99].
+        """Recursively clamp every numeric value in a nested structure to strictly [0.01, 0.99].
 
-        IMPORTANT: Only clamps floats, NOT integers. Integer fields like step counts,
-        threat counts, and technique counts must remain as-is — they are not scores.
         The OpenEnv validator rejects any task score that is exactly 0.0 or 1.0.
+        If the validator rounds to 2 decimal places, 0.001 becomes 0.0 and 0.999 becomes 1.0.
+        We strictly bound it well within 0 and 1.
         """
         if isinstance(obj, dict):
             return {k: AttackEngine._sanitize_scores(v) for k, v in obj.items()}
@@ -895,7 +895,12 @@ class AttackEngine:
             if obj > 0.99:
                 return 0.99
             return obj
-        # Integers (counts, step numbers, etc.) are left unchanged
+        if isinstance(obj, int) and not isinstance(obj, bool):
+            if obj <= 0:
+                return 0.01
+            if obj >= 1:
+                return 0.99
+            return float(obj)
         return obj
 
     def grade_episode(self, network: NetworkSimulator, steps_used: int) -> dict:
