@@ -912,11 +912,11 @@ def run_episode(task_id: str, use_llm: bool = True) -> dict:
         # Get grader result
         state = env.state
         grader_result = getattr(state, "grader_result", None) or {}
-        final_score = grader_result.get("final_score", 0.01)
+        final_score = grader_result.get("final_score", 0.0)
         success = final_score >= 0.3
 
     except Exception:
-        grader_result = {"final_score": 0.01}
+        grader_result = {"final_score": 0.0}
         # Make sure we have at least one reward entry
         if not rewards:
             rewards.append(0.0)
@@ -959,4 +959,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

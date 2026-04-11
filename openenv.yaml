@@ -208,7 +208,7 @@ grading:
     - name: efficiency
       weight: 0.10
       description: "Rewards completing the episode quickly relative to max_steps."
-  score_range: [0.01, 0.99]
+  score_range: [0.0, 1.0]
 
 network:
   node_count: 12

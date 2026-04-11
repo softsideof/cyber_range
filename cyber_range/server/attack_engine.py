@@ -945,7 +945,11 @@ class AttackEngine:
 
         # --- Final Score ---
         final_score = sum(scores.values())
-        scores["final_score"] = round(min(1.0, max(0.0, final_score)), 3)
+
+        # Clamp ALL scores to strictly (0, 1) — evaluator rejects 0.0 and 1.0
+        for key in list(scores.keys()):
+            scores[key] = round(min(0.99, max(0.001, scores[key])), 4)
+        scores["final_score"] = round(min(0.99, max(0.01, final_score)), 4)
 
         scores["details"] = {
             "threats_neutralized": f"{self.metrics.threats_neutralized}/{self.metrics.total_threats}",
