@@ -882,12 +882,12 @@ class NetworkSimulator:
         """Calculate network health score (0.0 = catastrophic, 1.0 = perfect)."""
         total = len(self.nodes)
         if total == 0:
-            return 1.0
+            return 0.99
         healthy = sum(1 for n in self.nodes.values() if n.status == NodeStatus.HEALTHY)
         isolated = sum(1 for n in self.nodes.values() if n.status == NodeStatus.ISOLATED)
         # Isolated healthy nodes penalize slightly, isolated compromised is neutral
         score = (healthy + 0.5 * isolated) / total
-        return round(max(0.0, min(1.0, score)), 3)
+        return round(max(0.01, min(0.99, score)), 3)
 
     def compromised_count(self) -> int:
         """Count of currently compromised nodes."""

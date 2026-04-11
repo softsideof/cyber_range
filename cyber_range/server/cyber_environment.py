@@ -503,7 +503,7 @@ class CyberRangeEnvironment(MCPEnvironment):
         self._state.step_count += 1
         self.network.increment_step()
         self._last_action_result = None
-        self._last_reward = 0.0  # Reset so tools with no cost report 0
+        self._last_reward = None  # Reset so tools with no cost report None
 
         # Execute the tool via MCPEnvironment
         obs = super().step(action, timeout_s=timeout_s, **kwargs)
@@ -528,7 +528,7 @@ class CyberRangeEnvironment(MCPEnvironment):
         self._state.step_count += 1
         self.network.increment_step()
         self._last_action_result = None
-        self._last_reward = 0.0
+        self._last_reward = None
 
         obs = await super().step_async(action, timeout_s=timeout_s, **kwargs)
 
@@ -551,7 +551,7 @@ class CyberRangeEnvironment(MCPEnvironment):
         """Handle non-MCP actions (return error)."""
         return Observation(
             done=False,
-            reward=0.0,
+            reward=None,
             metadata={
                 "error": f"Unknown action type: {type(action).__name__}. "
                 "Use ListToolsAction or CallToolAction for MCP interactions. "

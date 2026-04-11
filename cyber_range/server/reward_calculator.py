@@ -63,14 +63,14 @@ class RewardCalculator:
     _INVESTIGATION_ACTIONS = {"investigate_alert", "run_forensics", "deploy_honeypot"}
 
     def __init__(self) -> None:
-        self._cumulative_reward: float = 0.0
+        self._cumulative_reward: float = 0.01
         self._action_history: list[str] = []        # For repeat penalty
         self._phase_history: list[str] = []         # For phase-order bonus
         self._investigated_before_contain: bool = False
 
     def reset(self) -> None:
         """Reset all tracking for a new episode."""
-        self._cumulative_reward = 0.0
+        self._cumulative_reward = 0.01
         self._action_history = []
         self._phase_history = []
         self._investigated_before_contain = False
@@ -90,7 +90,7 @@ class RewardCalculator:
         Returns:
             Float reward value (positive = good, negative = bad).
         """
-        reward = 0.0
+        reward = 0.01
         action_type = result.action_type
 
         # ── REPEAT COMMAND PENALTY (GRPO-critical) ──────────────────────
@@ -178,7 +178,7 @@ class RewardCalculator:
         Returns:
             Episode-end bonus/penalty (also added to cumulative_reward)
         """
-        bonus = 0.0
+        bonus = 0.01
 
         if total_threats > 0 and threats_neutralized == 0:
             # Complete failure — apply hard timeout penalty
