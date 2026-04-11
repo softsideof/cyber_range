@@ -157,6 +157,7 @@ class CyberJudge:
         return {
             "llm_judge_score": round(max(0.01, min(0.99, llm_score)), 4),
             "combined_score": round(max(0.01, min(0.99, combined)), 4),
+            "score": round(max(0.01, min(0.99, combined)), 4),
             "persona_scores": {
                 name: max(0.01, min(0.99, float(r.get("score", 0.5))))
                 for name, r in persona_results.items()
@@ -274,6 +275,7 @@ class CyberJudge:
         return {
             "llm_judge_score": safe_score,
             "combined_score": safe_score,
+            "score": safe_score,
             "persona_scores": {},
             "persona_feedback": {},
             "feedback": "LLM judge not configured (set MODEL_NAME + API_BASE_URL + HF_TOKEN).",

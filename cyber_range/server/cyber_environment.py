@@ -580,6 +580,7 @@ class CyberRangeEnvironment(MCPEnvironment):
                 "collateral_damage": 0.01,
                 "efficiency": 0.01,
                 "final_score": 0.05,
+                "score": 0.05,
             }
 
         # State has extra="allow" so we can add custom fields

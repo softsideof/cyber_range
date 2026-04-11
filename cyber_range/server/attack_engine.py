@@ -973,8 +973,9 @@ class AttackEngine:
 
         # Clamp ALL scores to strictly (0, 1) — evaluator rejects 0.0 and 1.0
         for key in list(scores.keys()):
-            scores[key] = round(min(0.99, max(0.001, scores[key])), 4)
+            scores[key] = round(min(0.99, max(0.01, scores[key])), 4)
         scores["final_score"] = round(min(0.99, max(0.01, final_score)), 4)
+        scores["score"] = scores["final_score"]
 
         # details: ALL numeric values converted to strings so evaluator
         # cannot mistake them for score fields (0 and 1 are integers, not scores)
