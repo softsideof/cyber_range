@@ -926,7 +926,7 @@ def run_episode(task_id: str, use_llm: bool = True) -> dict:
     rewards_str = ",".join(f"{r:.4f}" for r in rewards) if rewards else "0.01"
     print(
         f"[END] success={str(success).lower()} steps={total_steps} "
-        f"rewards={rewards_str}",
+        f"score={final_score:.4f} rewards={rewards_str}",
         flush=True,
     )
 
