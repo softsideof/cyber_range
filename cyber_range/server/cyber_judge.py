@@ -140,11 +140,11 @@ class CyberJudge:
         ]
         llm_score = sum(valid_scores) / len(valid_scores) if valid_scores else deterministic_score
         # Clamp to strictly (0, 1)
-        llm_score = max(0.001, min(0.999, llm_score))
+        llm_score = max(0.01, min(0.99, llm_score))
 
         # Weighted combination: 70% deterministic + 30% LLM judge
         combined = round(0.70 * deterministic_score + 0.30 * llm_score, 4)
-        combined = max(0.001, min(0.999, combined))
+        combined = max(0.01, min(0.99, combined))
 
         # Aggregate feedback from all personas
         verdicts = [
@@ -155,10 +155,10 @@ class CyberJudge:
         feedback = " | ".join(verdicts)
 
         return {
-            "llm_judge_score": round(max(0.001, min(0.999, llm_score)), 4),
-            "combined_score": round(max(0.001, min(0.999, combined)), 4),
+            "llm_judge_score": round(max(0.01, min(0.99, llm_score)), 4),
+            "combined_score": round(max(0.01, min(0.99, combined)), 4),
             "persona_scores": {
-                name: max(0.001, min(0.999, float(r.get("score", 0.5))))
+                name: max(0.01, min(0.99, float(r.get("score", 0.5))))
                 for name, r in persona_results.items()
             },
             "persona_feedback": {

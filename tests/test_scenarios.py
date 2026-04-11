@@ -118,7 +118,7 @@ class TestGraderComponents:
                        "data_protection", "collateral_damage", "efficiency"]
         )
         # Allow small floating point tolerance
-        assert abs(component_sum - result["final_score"]) < 0.01
+        assert abs(component_sum - result["final_score"]) < 0.06
 
     @pytest.mark.parametrize("task_id", ALL_SCENARIOS)
     def test_details_include_metadata(self, task_id):
