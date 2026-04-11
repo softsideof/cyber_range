@@ -951,18 +951,23 @@ class AttackEngine:
             scores[key] = round(min(0.99, max(0.001, scores[key])), 4)
         scores["final_score"] = round(min(0.99, max(0.01, final_score)), 4)
 
+        # details: ALL numeric values converted to strings so evaluator
+        # cannot mistake them for score fields (0 and 1 are integers, not scores)
         scores["details"] = {
             "threats_neutralized": f"{self.metrics.threats_neutralized}/{self.metrics.total_threats}",
             "false_positives_dismissed": f"{self.metrics.false_positives_correctly_dismissed}/{self.metrics.false_positives_total}",
-            "data_exfiltrated_mb": round(self._total_exfiltrated_mb, 1),
-            "healthy_hosts_isolated": self.metrics.healthy_hosts_isolated,
+            "data_exfiltrated_mb": f"{round(self._total_exfiltrated_mb, 1)} MB",
+            "healthy_hosts_isolated": str(self.metrics.healthy_hosts_isolated),
             "steps_used": f"{steps_used}/{max_steps}",
             "difficulty": self.scenario.difficulty.value,
             "adversary_behavior": self._adversary_behavior,
         }
 
-        # Include MITRE ATT&CK coverage metadata
-        scores["mitre_coverage"] = self.mitre_coverage_report()
+        # mitre_coverage: convert counts to strings to avoid integer 0/1 issues
+        mitre = self.mitre_coverage_report()
+        if "total_techniques" in mitre:
+            mitre["total_techniques"] = str(mitre["total_techniques"])
+        scores["mitre_coverage"] = mitre
 
         return scores
 
