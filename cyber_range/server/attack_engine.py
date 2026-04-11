@@ -639,6 +639,7 @@ class AttackEngine:
             ("Legitimate bulk email delivery", AlertType.ANOMALOUS_TRAFFIC, AlertSeverity.LOW, "mail-01"),
             ("Scheduled backup transfer spike", AlertType.ANOMALOUS_TRAFFIC, AlertSeverity.INFO, "backup-01"),
             ("Developer testing API load", AlertType.ANOMALOUS_TRAFFIC, AlertSeverity.LOW, "app-01"),
+            ("Vulnerability scanner probe from internal security team", AlertType.INTRUSION, AlertSeverity.LOW, "ids-01"),
         ]
 
         for i in range(min(self.scenario.false_positive_count, len(fp_types))):
@@ -878,11 +879,11 @@ class AttackEngine:
 
     @staticmethod
     def _sanitize_scores(obj: any) -> any:
-        """Recursively clamp every numeric value in a nested structure to strictly [0.01, 0.99].
+        """Recursively clamp every FLOAT value in a nested structure to strictly [0.01, 0.99].
 
+        IMPORTANT: Only clamps floats, NOT integers. Integer fields like step counts,
+        threat counts, and technique counts must remain as-is — they are not scores.
         The OpenEnv validator rejects any task score that is exactly 0.0 or 1.0.
-        If the validator rounds to 2 decimal places, 0.001 becomes 0.0 and 0.999 becomes 1.0.
-        We strictly bound it well within 0 and 1.
         """
         if isinstance(obj, dict):
             return {k: AttackEngine._sanitize_scores(v) for k, v in obj.items()}
@@ -894,12 +895,7 @@ class AttackEngine:
             if obj > 0.99:
                 return 0.99
             return obj
-        if isinstance(obj, int) and not isinstance(obj, bool):
-            if obj <= 0:
-                return 0.01
-            if obj >= 1:
-                return 0.99
-            return float(obj)
+        # Integers (counts, step numbers, etc.) are left unchanged
         return obj
 
     def grade_episode(self, network: NetworkSimulator, steps_used: int) -> dict:
@@ -924,7 +920,7 @@ class AttackEngine:
         # Penalize for attacker completing objectives
         completed_phases = sum(1 for p in self.phases if p.is_completed and not p.is_contained)
         completion_penalty = completed_phases / max(len(self.phases), 1)
-        threat_score = max(0.0, neutralization_rate - 0.5 * completion_penalty)
+        threat_score = max(0.01, neutralization_rate - 0.5 * completion_penalty)
         scores["threat_neutralization"] = round(threat_score * 0.35, 3)
 
         # --- Component 2: False Positive Handling (20%) ---
@@ -934,7 +930,7 @@ class AttackEngine:
             fp_score = fp_accuracy - 0.3 * fp_mistakes
         else:
             fp_score = 1.0  # No FPs to handle = perfect by default
-        scores["false_positive_handling"] = round(max(0.0, fp_score) * 0.20, 3)
+        scores["false_positive_handling"] = round(max(0.01, fp_score) * 0.20, 3)
 
         # --- Component 3: Data Protection (20%) ---
         total_possible_exfil = sum(
@@ -945,7 +941,7 @@ class AttackEngine:
             data_score = 1.0 - min(1.0, self._total_exfiltrated_mb / total_possible_exfil)
         else:
             data_score = 1.0
-        scores["data_protection"] = round(data_score * 0.20, 3)
+        scores["data_protection"] = round(max(0.01, data_score) * 0.20, 3)
 
         # --- Component 4: Collateral Damage (15%) ---
         collateral_score = 1.0
@@ -955,17 +951,13 @@ class AttackEngine:
             collateral_score -= 0.4 * self.metrics.critical_services_disrupted
         if self.metrics.real_threats_ignored > 0:
             collateral_score -= 0.3 * self.metrics.real_threats_ignored
-        scores["collateral_damage"] = round(max(0.0, collateral_score) * 0.15, 3)
+        scores["collateral_damage"] = round(max(0.01, collateral_score) * 0.15, 3)
 
         # --- Component 5: Efficiency (10%) ---
-        if steps_used <= max_steps * 0.5:
-            efficiency_score = 1.0
-        elif steps_used <= max_steps * 0.75:
-            efficiency_score = 0.7
-        elif steps_used <= max_steps:
-            efficiency_score = 0.4
-        else:
-            efficiency_score = 0.1
+        # Continuous linear decay: full credit if solved in 1 step, minimum at max_steps.
+        # This gives finer GRPO signal than coarse percentage bands.
+        step_fraction = steps_used / max(max_steps, 1)
+        efficiency_score = max(0.1, 1.0 - step_fraction * 0.9)
         scores["efficiency"] = round(efficiency_score * 0.10, 3)
 
         # --- Final Score ---

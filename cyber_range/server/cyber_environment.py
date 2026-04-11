@@ -57,7 +57,7 @@ class CyberRangeEnvironment(MCPEnvironment):
         self._max_steps: int = 15
         self._episode_done: bool = False
         self._episode_events: list[str] = []
-        self._last_reward: float = 0.0
+        self._last_reward: float = 0.01
         self._grader_result: Optional[dict] = None
 
         # Create MCP server and register all 10 tools
@@ -317,7 +317,7 @@ class CyberRangeEnvironment(MCPEnvironment):
 
 
         @mcp.tool
-        def escalate_incident(description: str) -> dict:
+        def escalate_incident(description: str = "Incident escalated") -> dict:
             """
             Escalate an incident to a senior analyst for review.
 
@@ -453,7 +453,7 @@ class CyberRangeEnvironment(MCPEnvironment):
         self.episode_logger.reset()
         self._episode_done = False
         self._episode_events = []
-        self._last_reward = 0.0
+        self._last_reward = 0.01
         self._grader_result = None
         self._last_action_result = None
 
@@ -480,7 +480,7 @@ class CyberRangeEnvironment(MCPEnvironment):
 
         return Observation(
             done=False,
-            reward=None,
+            reward=0.01,
             metadata=initial_obs,
         )
 

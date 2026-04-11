@@ -51,7 +51,8 @@ class TestReset:
 
     def test_reset_reward_is_zero(self, env):
         obs = env.reset(task_id="script_kiddie", seed=SEED)
-        assert obs.reward is None
+        assert isinstance(obs.reward, float)
+        assert obs.reward > 0.0
 
     def test_reset_metadata_is_dict(self, env):
         obs = env.reset(task_id="script_kiddie", seed=SEED)

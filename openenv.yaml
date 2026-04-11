@@ -187,7 +187,11 @@ tools:
     description: "Escalate the incident to senior management. Triggers additional monitoring and support resources."
     cost: 1
     category: management
-    parameters: []
+    parameters:
+      - name: description
+        type: string
+        required: false
+        default: "Incident escalated"
 
 grading:
   deterministic: true
