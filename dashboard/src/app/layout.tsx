@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'CyberRange — Autonomous SOC Defense & Adversary Simulation',
+  title: 'CyberRange — Autonomous SOC Defense Platform',
   description:
-    'Interactive 3D enterprise network attack simulation platform. Autonomous SOC policy defending against APTs, ransomware, and supply chain attacks.',
+    'Enterprise SOC simulation with autonomous AI defense agent, real-time threat intelligence, and adversary campaign injection. Built with OpenEnv RL.',
 };
 
 export const viewport: Viewport = {
@@ -21,6 +21,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      {/* Inter + JetBrains Mono — preconnect for speed */}
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      </head>
       <body>{children}</body>
     </html>
   );

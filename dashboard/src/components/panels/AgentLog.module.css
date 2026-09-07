@@ -1,141 +1,267 @@
+/* AgentLog — AI defense decision feed */
+
 .container {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #0d1117;
-  border: 1px solid #21262d;
+  background: var(--bg-surface);
   overflow: hidden;
-  font-family: var(--font-ui);
 }
 
+/* header */
 .header {
-  display: flex;
-  flex-direction: column;
-  padding: 12px 16px;
-  background: #161b22;
-  border-bottom: 1px solid #21262d;
-  gap: 10px;
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
-.titleRow {
+.headerTop {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 6px;
 }
 
 .title {
-  font-size: 12px;
-  font-weight: 700;
-  color: #f0f6fc;
-  letter-spacing: 0.04em;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.controlBar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #0d1117;
-  padding: 6px 10px;
-  border-radius: 6px;
-  border: 1px solid #21262d;
-}
-
-.ctrlBtn {
-  background: #21262d;
-  border: 1px solid #30363d;
-  color: #f0f6fc;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-1);
   font-family: var(--font-ui);
-  font-size: 11px;
-  font-weight: 600;
-  padding: 5px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  transition: all 0.15s ease;
-}
-
-.ctrlBtn:hover {
-  background: #30363d;
-  border-color: #58a6ff;
-}
-
-.btnPrimary {
-  background: #238636;
-  border-color: rgba(240, 246, 252, 0.1);
-  color: #ffffff;
-}
-
-.btnPrimary:hover {
-  background: #2ea043;
-}
-
-.stepHeadline {
-  background: rgba(56, 139, 253, 0.08);
-  border: 1px solid rgba(56, 139, 253, 0.3);
-  border-radius: 6px;
-  padding: 10px 14px;
-  margin: 10px 14px 0 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.headlineTop {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 11px;
-  font-weight: 600;
-  color: #58a6ff;
-}
-
-.headlineText {
-  font-size: 12px;
-  color: #f0f6fc;
-  line-height: 1.45;
-}
-
-.logArea {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.stepCard {
-  background: #161b22;
-  border: 1px solid #21262d;
-  border-radius: 6px;
-  padding: 10px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  transition: border-color 0.15s ease;
-}
-
-.stepCard:hover {
-  border-color: #30363d;
-}
-
-.stepCardHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 11px;
 }
 
 .stepBadge {
-  color: #58a6ff;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.stepOf {
+  color: var(--text-3);
+  font-weight: 400;
+}
+
+.stepTrack {
+  height: 2px;
+  background: var(--bg-card);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.stepFill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+/* controls */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.ctrlBtn {
+  height: 26px;
+  padding: 0 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-sm);
+  color: var(--text-2);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.ctrlBtn:hover { background: var(--bg-hover); color: var(--text-1); }
+
+.ctrlPlay {
+  background: var(--accent-dim);
+  color: var(--blue);
+  border-color: rgba(79, 142, 247, 0.25);
+  font-weight: 600;
+}
+
+.ctrlPlay:hover { background: var(--accent); color: #fff; }
+
+.ctrlPause { background: var(--bg-elevated); }
+
+.ctrlBtnIcon {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-sm);
+  color: var(--text-2);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.ctrlBtnIcon:hover { background: var(--bg-hover); color: var(--text-1); }
+
+/* current action headline */
+.headline {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-elevated);
+  flex-shrink: 0;
+}
+
+.headlineMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.headlineStep {
+  font-size: 10px;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+
+.headlineReward {
+  font-size: 12px;
   font-weight: 700;
   font-family: var(--font-mono);
+}
+
+.headlineAction {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+
+.headlineIcon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.headlineTool {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text-1);
+}
+
+.headlineReason {
+  font-size: 11.5px;
+  color: var(--text-2);
+  font-family: var(--font-ui);
+  line-height: 1.5;
+}
+
+.emptyHeadline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-2);
+  font-family: var(--font-ui);
+  flex-shrink: 0;
+}
+
+.cursor {
+  width: 7px;
+  height: 14px;
+  background: var(--accent);
+  border-radius: 1px;
+  animation: blink 1s step-end infinite;
+  flex-shrink: 0;
+}
+
+/* log */
+.log {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 12px;
+  color: var(--text-3);
+  font-family: var(--font-ui);
+}
+
+/* step card */
+.stepCard {
+  display: flex;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  animation: fade-in 0.2s ease both;
+  transition: border-color var(--transition);
+}
+
+.stepCard:hover {
+  border-color: var(--border-accent);
+}
+
+.accent {
+  width: 3px;
+  flex-shrink: 0;
+}
+
+.cardBody {
+  flex: 1;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cardLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cardRight {
+  display: flex;
+  align-items: center;
+}
+
+.stepNum {
   font-size: 10px;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+
+.actionTag {
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-ui);
 }
 
 .rewardBadge {
@@ -143,40 +269,60 @@
   font-weight: 700;
   font-family: var(--font-mono);
   padding: 1px 6px;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
 }
 
-.rewardPos {
-  color: #3fb950;
-  background: rgba(46, 160, 67, 0.15);
-}
-
-.rewardNeg {
-  color: #f85149;
-  background: rgba(248, 81, 73, 0.15);
-}
-
-.actionLine {
-  font-size: 11px;
-  font-weight: 600;
-  color: #f0f6fc;
+.argsLine {
+  font-size: 10px;
+  color: var(--text-3);
   font-family: var(--font-mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.reasoningText {
+.reason {
   font-size: 11px;
-  color: #8b949e;
-  line-height: 1.4;
+  color: var(--text-2);
+  font-family: var(--font-ui);
+  line-height: 1.5;
 }
 
-.emptyState {
+/* confidence bar */
+.confRow {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.confLabel {
+  font-size: 9px;
+  color: var(--text-3);
+  font-weight: 500;
+  font-family: var(--font-ui);
+  white-space: nowrap;
+}
+
+.confTrack {
+  flex: 1;
+  height: 2px;
+  background: var(--bg-card);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.confFill {
   height: 100%;
-  padding: 30px;
-  text-align: center;
-  color: #8b949e;
-  gap: 10px;
+  border-radius: 99px;
+  transition: width 0.3s ease;
+}
+
+.confPct {
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--text-3);
+  width: 28px;
+  text-align: right;
 }

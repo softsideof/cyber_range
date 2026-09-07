@@ -1,3 +1,5 @@
+/* Dashboard page — shell and workspace layout */
+
 .shell {
   display: flex;
   flex-direction: column;
@@ -7,68 +9,79 @@
   overflow: hidden;
 }
 
+/* main workspace */
 .workspace {
   flex: 1;
   display: flex;
   overflow: hidden;
-  position: relative;
 }
 
-/* desktop layout: 65% left, 35% right */
+/* LEFT — network topology (55%) */
 .mainVisual {
-  flex: 0 0 65%;
+  flex: 0 0 55%;
+  min-width: 0;
   height: 100%;
-  position: relative;
   border-right: 1px solid var(--border);
   overflow: hidden;
 }
 
+/* RIGHT column (45%) */
 .rightRail {
-  flex: 0 0 35%;
-  height: 100%;
+  flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-width: 0;
 }
 
-.alertSection {
+/* right top — threat intel (45% of right column) */
+.intelSection {
   flex: 0 0 45%;
   height: 45%;
-  overflow: hidden;
   border-bottom: 1px solid var(--border);
+  overflow: hidden;
 }
 
-.tabbedSection {
-  flex: 0 0 55%;
-  height: 55%;
+/* right bottom — tabbed panel (55% of right column) */
+.logSection {
+  flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
+/* tab bar */
 .tabBar {
   display: flex;
-  background: #11141c;
   border-bottom: 1px solid var(--border);
-  font-family: var(--font-mono);
-  font-size: 11px;
+  background: var(--bg-surface);
+  flex-shrink: 0;
 }
 
 .tabBtn {
   flex: 1;
-  padding: 8px;
+  padding: 8px 6px;
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
-  color: var(--text-2);
+  color: var(--text-3);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 500;
   cursor: pointer;
-  text-transform: uppercase;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+  white-space: nowrap;
 }
 
-.tabBtnActive {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
-  background: rgba(217, 119, 6, 0.06);
+.tabBtn:hover {
+  color: var(--text-2);
+  background: var(--bg-elevated);
+}
+
+.tabActive {
+  color: var(--text-1) !important;
+  border-bottom-color: var(--accent) !important;
+  background: transparent !important;
   font-weight: 600;
 }
 
@@ -77,24 +90,22 @@
   overflow: hidden;
 }
 
-/* mobile layout: single active full-width panel */
+/* mobile: single-panel */
+.mobileOnlyPanel {
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* responsive: hide right rail on small screens */
 @media (max-width: 1024px) {
-  .workspace {
-    flex-direction: column;
-  }
-
-  .mainVisual {
-    flex: 1;
-    border-right: none;
-  }
-
+  .mainVisual,
   .rightRail {
     display: none;
   }
 
   .mobileOnlyPanel {
-    flex: 1;
-    height: 100%;
-    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 }

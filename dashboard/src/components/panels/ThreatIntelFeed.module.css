@@ -1,0 +1,490 @@
+/* ThreatIntelFeed — threat actor, CVE, and IOC tracker */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-surface);
+  overflow: hidden;
+}
+
+/* header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headerLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-1);
+  font-family: var(--font-ui);
+}
+
+.liveTag {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--amber);
+  background: var(--amber-dim);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: var(--radius-xs);
+  padding: 1px 5px;
+  font-family: var(--font-mono);
+}
+
+.iocSummary {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+
+/* tabs */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.tab {
+  flex: 1;
+  padding: 8px 4px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-3);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition);
+}
+
+.tab:hover {
+  color: var(--text-2);
+}
+
+.tabActive {
+  color: var(--text-1);
+  border-bottom-color: var(--accent);
+}
+
+/* shared body */
+.body {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* empty state */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 100%;
+  padding: 24px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 12px;
+  font-family: var(--font-ui);
+}
+
+.emptyIcon {
+  font-size: 28px;
+  opacity: 0.3;
+}
+
+/* ── ACTOR TAB ─────────────────────────────── */
+.actorPanel {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.actorCard {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+}
+
+.actorBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--red);
+  letter-spacing: 0.08em;
+  font-family: var(--font-mono);
+  margin-bottom: 6px;
+}
+
+.threatDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--red);
+  animation: blink 1.5s ease infinite;
+}
+
+.actorCodename {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-1);
+  font-family: var(--font-ui);
+  letter-spacing: -0.01em;
+}
+
+.actorAlias {
+  font-size: 11px;
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  margin-top: 2px;
+}
+
+/* field list */
+.fieldList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.field {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.fieldLabel {
+  font-size: 10px;
+  color: var(--text-3);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+  font-family: var(--font-ui);
+}
+
+.fieldValue {
+  font-size: 11px;
+  color: var(--text-1);
+  font-weight: 400;
+  text-align: right;
+  line-height: 1.4;
+  font-family: var(--font-ui);
+}
+
+/* known tools */
+.toolSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.toolLabel {
+  font-size: 10px;
+  color: var(--text-3);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-family: var(--font-ui);
+}
+
+.toolChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.toolChip {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 7px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-xs);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+}
+
+/* activity block */
+.activityBlock {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+}
+
+.activityLabel {
+  font-size: 10px;
+  color: var(--amber);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  font-family: var(--font-ui);
+}
+
+.activityText {
+  font-size: 11.5px;
+  color: var(--text-2);
+  line-height: 1.6;
+  font-family: var(--font-ui);
+}
+
+/* ── CVE TAB ─────────────────────────────── */
+.cvePanel {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cveCard {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 11px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cveActive {
+  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.04);
+}
+
+.cveTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cveMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cveId {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-1);
+  font-family: var(--font-mono);
+}
+
+.activeExploitBadge {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--red);
+  background: var(--red-dim);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: var(--radius-xs);
+  padding: 1px 5px;
+  font-family: var(--font-mono);
+  animation: blink 2s ease infinite;
+}
+
+.cvssRow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cvssLabel {
+  font-size: 9px;
+  color: var(--text-3);
+  font-weight: 500;
+  font-family: var(--font-ui);
+}
+
+.cvssScore {
+  font-size: 14px;
+  font-weight: 800;
+  font-family: var(--font-mono);
+}
+
+.cveComponent {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-2);
+  font-family: var(--font-ui);
+}
+
+.cveDesc {
+  font-size: 11.5px;
+  color: var(--text-2);
+  line-height: 1.55;
+  font-family: var(--font-ui);
+}
+
+.exploitStatus {
+  display: flex;
+}
+
+.exploitBadge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border: 1px solid;
+  border-radius: var(--radius-xs);
+  font-family: var(--font-mono);
+}
+
+/* ── IOC TRACKER TAB ─────────────────────────────── */
+.iocPanel {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.iocProgress {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.iocProgressLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-2);
+  font-family: var(--font-mono);
+}
+
+.iocProgressTrack {
+  height: 4px;
+  background: var(--bg-card);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.iocProgressFill {
+  height: 100%;
+  background: var(--green);
+  border-radius: 99px;
+  transition: width 0.5s ease;
+}
+
+.iocList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.iocRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.iocActiveRow {
+  background: rgba(239, 68, 68, 0.03);
+}
+
+.iocNeutralized {
+  opacity: 0.45;
+}
+
+.iocIndicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 1px;
+}
+
+.iocCheckmark {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--green-dim);
+  border-radius: 50%;
+  color: var(--green);
+  font-size: 11px;
+}
+
+.iocAlert {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--red-dim);
+  border-radius: 50%;
+  color: var(--red);
+  font-size: 11px;
+  font-weight: 700;
+  animation: blink 1.5s ease infinite;
+}
+
+.iocPending {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-3);
+  font-size: 13px;
+}
+
+.iocContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.iocType {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: var(--font-ui);
+}
+
+.iocValue {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-1);
+  font-family: var(--font-mono);
+  word-break: break-all;
+}
+
+.iocDesc {
+  font-size: 11px;
+  color: var(--text-2);
+  font-family: var(--font-ui);
+  line-height: 1.4;
+}

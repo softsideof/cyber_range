@@ -1,109 +1,121 @@
 'use client';
 
-// tactical MetricsBar with live sparklines and DEFCON status indicator
-
+// live metrics bar — DEFCON, health, step progress, score
 import React from 'react';
 import { useAppStore } from '@/store';
-import { TelemetrySparkline } from './TelemetrySparkline';
 import styles from './MetricsBar.module.css';
 
 export function MetricsBar() {
-  const metrics = useAppStore((s) => s.metrics);
-  const step = useAppStore((s) => s.step);
+  const metrics  = useAppStore((s) => s.metrics);
+  const step     = useAppStore((s) => s.step);
   const maxSteps = useAppStore((s) => s.maxSteps);
 
-  const getDefconInfo = () => {
+  // derive DEFCON level 1-5 from threat
+  const defconLevel = () => {
     switch (metrics.threatLevel) {
-      case 'critical':
-      case 'red':
-        return { label: 'DEFCON 1 // CRITICAL INTRUSION', cls: styles.defconRed };
-      case 'orange':
-      case 'yellow':
-        return { label: 'DEFCON 3 // ELEVATED THREAT', cls: styles.defconYellow };
-      default:
-        return { label: 'DEFCON 4 // SYSTEM NORMAL', cls: styles.defconGreen };
+      case 'critical': return 1;
+      case 'red':      return 2;
+      case 'orange':   return 3;
+      case 'yellow':   return 4;
+      default:         return 5;
     }
   };
 
-  const defcon = getDefconInfo();
+  const defcon = defconLevel();
+  const stepPct = maxSteps > 0 ? Math.min(100, (step / maxSteps) * 100) : 0;
+  const healthColor = metrics.health >= 75 ? 'var(--green)' : metrics.health >= 40 ? 'var(--amber)' : 'var(--red)';
+  const scoreSigned = metrics.score >= 0
+    ? `+${metrics.score.toFixed(2)}`
+    : metrics.score.toFixed(2);
 
-  // simulated throughput trend based on step and health
-  const ppsValue = Math.max(120, Math.round((100 - metrics.health) * 45 + 180));
-  const throughputMb = ((ppsValue * 1.4) / 100).toFixed(1);
-
-  const budgetPct = metrics.maxBudget > 0 ? Math.min(100, (metrics.budget / metrics.maxBudget) * 100) : 0;
+  // simulated network traffic based on health
+  const pps = Math.round((100 - metrics.health) * 38 + 200);
 
   return (
-    <div className={styles.container}>
-      <div className={`${styles.defconPill} ${defcon.cls}`}>
-        <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }} />
-        {defcon.label}
+    <div className={styles.bar}>
+      {/* DEFCON strip — 5 numbered segments */}
+      <div className={styles.section}>
+        <span className={styles.label}>DEFCON</span>
+        <div className={styles.defconStrip}>
+          {[1, 2, 3, 4, 5].map((n) => (
+            <div
+              key={n}
+              className={styles.defconSeg}
+              data-active={defcon <= n ? 'true' : undefined}
+              data-level={n}
+              title={`DEFCON ${n}`}
+            >
+              {n}
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className={styles.divider} />
+      <div className={styles.sep} />
 
-      <div className={styles.metricItem}>
+      {/* Network health */}
+      <div className={styles.section}>
         <span className={styles.label}>Network Health</span>
-        <span className={styles.val} style={{ color: metrics.health >= 80 ? 'var(--green)' : metrics.health >= 50 ? 'var(--yellow)' : 'var(--red)' }}>
-          {metrics.health}%
+        <div className={styles.healthRow}>
+          <span className={styles.healthVal} style={{ color: healthColor }}>
+            {metrics.health}%
+          </span>
+          <div className={styles.healthTrack}>
+            <div
+              className={styles.healthFill}
+              style={{ width: `${metrics.health}%`, background: healthColor }}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.sep} />
+
+      {/* Step progress */}
+      <div className={styles.section}>
+        <span className={styles.label}>Step Progress</span>
+        <div className={styles.healthRow}>
+          <span className={styles.healthVal}>{step}<span className={styles.stepMax}> / {maxSteps}</span></span>
+          <div className={styles.healthTrack}>
+            <div
+              className={styles.healthFill}
+              style={{ width: `${stepPct}%`, background: 'var(--blue)' }}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.sep} />
+
+      {/* Traffic sensor */}
+      <div className={styles.section}>
+        <span className={styles.label}>Network Traffic</span>
+        <span className={styles.monoVal} style={{ color: 'var(--cyan)' }}>
+          {pps} <span className={styles.unit}>PPS</span>
         </span>
-        <div className={styles.barTrack}>
-          <div
-            className={styles.barFill}
-            style={{
-              width: `${metrics.health}%`,
-              backgroundColor: metrics.health >= 80 ? 'var(--green)' : metrics.health >= 50 ? 'var(--yellow)' : 'var(--red)',
-            }}
-          />
-        </div>
       </div>
 
-      <div className={styles.divider} />
+      <div className={styles.sep} />
 
-      <TelemetrySparkline
-        label="Sensor Packets"
-        value={ppsValue}
-        unit="PPS"
-        color="#00f0ff"
-        trend={[ppsValue * 0.7, ppsValue * 0.85, ppsValue * 0.78, ppsValue * 0.95, ppsValue]}
-      />
-
-      <div className={styles.divider} />
-
-      <TelemetrySparkline
-        label="Bandwidth Pipe"
-        value={throughputMb}
-        unit="MB/s"
-        color="#ffb703"
-        trend={[12, 18, 15, 24, 32, 28, Number(throughputMb)]}
-      />
-
-      <div className={styles.divider} />
-
-      <div className={styles.metricItem}>
-        <span className={styles.label}>Action Budget</span>
-        <span className={styles.val}>{metrics.budget}/{metrics.maxBudget}</span>
-        <div className={styles.barTrack}>
-          <div
-            className={styles.barFill}
-            style={{ width: `${budgetPct}%`, backgroundColor: 'var(--cyan)' }}
-          />
-        </div>
-      </div>
-
-      <div className={styles.divider} />
-
-      <div className={styles.metricItem}>
-        <span className={styles.label}>Execution Horizon</span>
-        <span className={styles.val}>STEP {step} / {maxSteps}</span>
-      </div>
-
-      <div className={styles.divider} />
-
-      <div className={styles.metricItem}>
+      {/* Policy score */}
+      <div className={styles.section}>
         <span className={styles.label}>Policy Score</span>
-        <span className={styles.val} style={{ color: metrics.score >= 0 ? 'var(--green)' : 'var(--red)' }}>
-          {metrics.score >= 0 ? `+${metrics.score.toFixed(2)}` : metrics.score.toFixed(2)}
+        <span
+          className={styles.monoVal}
+          style={{ color: metrics.score >= 0 ? 'var(--green)' : 'var(--red)' }}
+        >
+          {scoreSigned}
+        </span>
+      </div>
+
+      <div className={styles.sep} />
+
+      {/* Action budget */}
+      <div className={styles.section}>
+        <span className={styles.label}>Action Budget</span>
+        <span className={styles.monoVal}>
+          {metrics.budget}
+          <span className={styles.unit}> / {metrics.maxBudget}</span>
         </span>
       </div>
     </div>

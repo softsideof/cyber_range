@@ -34,7 +34,7 @@ export interface AppStore {
   speed: 1 | 2 | 4;
   isPaused: boolean;
   isMobile: boolean;
-  activeTab: 'network' | 'alerts' | 'agent' | 'mitre' | 'score';
+  activeTab: 'network' | 'alerts' | 'agent' | 'mitre' | 'intel' | 'score';
   showAttackBuilder: boolean;
   showArchitecture: boolean;
   showBriefing: boolean;
@@ -50,7 +50,7 @@ export interface AppStore {
   togglePaused: () => void;
   setSpeed: (speed: 1 | 2 | 4) => void;
   cycleSpeed: () => void;
-  setActiveTab: (tab: 'network' | 'alerts' | 'agent' | 'mitre' | 'score') => void;
+  setActiveTab: (tab: 'network' | 'alerts' | 'agent' | 'mitre' | 'intel' | 'score') => void;
   setShowAttackBuilder: (show: boolean) => void;
   setShowArchitecture: (show: boolean) => void;
   setShowBriefing: (show: boolean) => void;

@@ -1,87 +1,119 @@
-.container {
+/* MetricsBar — horizontal strip of live telemetry indicators */
+
+.bar {
   display: flex;
   align-items: center;
-  background: #090d16;
+  gap: 0;
+  height: 38px;
+  padding: 0 16px;
+  background: var(--bg-surface);
   border-bottom: 1px solid var(--border);
-  padding: 6px 16px;
-  gap: 18px;
-  overflow-x: auto;
-  font-family: var(--font-mono);
-  font-size: 11px;
-}
-
-.defconPill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 8px;
-  border-radius: 2px;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.defconGreen {
-  background: rgba(6, 214, 160, 0.12);
-  border: 1px solid var(--green);
-  color: var(--green);
-}
-
-.defconYellow {
-  background: rgba(255, 209, 102, 0.12);
-  border: 1px solid var(--yellow);
-  color: var(--yellow);
-}
-
-.defconRed {
-  background: rgba(255, 42, 85, 0.2);
-  border: 1px solid var(--red);
-  color: var(--red);
-  box-shadow: 0 0 10px rgba(255, 42, 85, 0.35);
-  animation: pulseCrit 1.4s infinite;
-}
-
-@keyframes pulseCrit {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.65; }
-}
-
-.metricItem {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-}
-
-.label {
-  color: var(--text-3);
-  text-transform: uppercase;
-  font-size: 9.5px;
-  letter-spacing: 0.05em;
-}
-
-.val {
-  color: #fff;
-  font-weight: 700;
-}
-
-.barTrack {
-  width: 55px;
-  height: 4px;
-  background: #121927;
-  border: 1px solid var(--border);
-  border-radius: 2px;
+  flex-shrink: 0;
   overflow: hidden;
 }
 
-.barFill {
-  height: 100%;
-  transition: width 0.3s ease;
-}
-
-.divider {
+.sep {
   width: 1px;
   height: 20px;
   background: var(--border);
+  margin: 0 14px;
+  flex-shrink: 0;
+}
+
+.section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-3);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  font-family: var(--font-ui);
+}
+
+/* DEFCON strip */
+.defconStrip {
+  display: flex;
+  gap: 3px;
+}
+
+.defconSeg {
+  width: 22px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-xs);
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  background: var(--bg-card);
+  color: var(--text-3);
+  border: 1px solid var(--border);
+  transition: background var(--transition), color var(--transition);
+}
+
+/* active segments per DEFCON level */
+.defconSeg[data-level="1"][data-active] { background: var(--red);    color: #fff; border-color: var(--red); }
+.defconSeg[data-level="2"][data-active] { background: var(--orange);  color: #fff; border-color: var(--orange); }
+.defconSeg[data-level="3"][data-active] { background: var(--amber);   color: #000; border-color: var(--amber); }
+.defconSeg[data-level="4"][data-active] { background: #3b82f6;        color: #fff; border-color: #3b82f6; }
+.defconSeg[data-level="5"][data-active] { background: var(--green);   color: #fff; border-color: var(--green); }
+
+/* health + step progress */
+.healthRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.healthVal {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  min-width: 36px;
+}
+
+.stepMax {
+  color: var(--text-3);
+  font-weight: 400;
+}
+
+.healthTrack {
+  width: 64px;
+  height: 3px;
+  background: var(--bg-card);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.healthFill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.4s ease, background 0.4s ease;
+}
+
+/* inline mono values */
+.monoVal {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.unit {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-3);
+}
+
+/* hide some on small screens */
+@media (max-width: 900px) {
+  .sep + .section:nth-child(n+7) { display: none; }
 }

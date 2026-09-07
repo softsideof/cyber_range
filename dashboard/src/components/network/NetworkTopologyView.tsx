@@ -1,251 +1,294 @@
 'use client';
 
-// clean 2D enterprise architecture topology diagram (Linear / Vercel design language)
-// organized into clear operational zones with readable status badges and host inspector
-
+// enterprise network topology — zone-based architecture diagram
+// nodes show animated attack pulse when under threat
 import React from 'react';
 import { useAppStore } from '@/store';
 import type { NetworkNode, NodeStatus } from '@/engine/types';
 import styles from './NetworkTopologyView.module.css';
 
-const NODE_ICONS: Record<string, string> = {
-  firewall: '🛡️',
-  domain_controller: '🏛️',
-  web_server: '🌐',
-  mail_server: '✉️',
-  app_server: '⚙️',
-  database: '🗄️',
-  backup_server: '💾',
-  workstation: '💻',
-  honeypot: '🍯',
+// SVG role icons — clean vector, no emojis
+const RoleIcon = ({ type, size = 14 }: { type: string; size?: number }) => {
+  const color = 'currentColor';
+  switch (type) {
+    case 'firewall':
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg>
+      );
+    case 'domain_controller':
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
+          <rect x="2" y="3" width="20" height="14" rx="2" />
+          <path d="M8 21h8M12 17v4" />
+        </svg>
+      );
+    case 'web_server':
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+        </svg>
+      );
+    case 'mail_server':
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
+          <rect x="2" y="4" width="20" height="16" rx="2" />
+          <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+        </svg>
+      );
+    case 'app_server':
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
+          <rect x="2" y="2" width="20" height="8" rx="2" />
+          <rect x="2" y="14" width="20" height="8" rx="2" />
+          <path d="M6 6h.01M6 18h.01" />
+        </svg>
+      );
+    case 'database':
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
+          <ellipse cx="12" cy="5" rx="9" ry="3" />
+          <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+          <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+        </svg>
+      );
+    case 'workstation':
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
+          <rect x="2" y="3" width="20" height="14" rx="2" />
+          <path d="M8 21h8M12 17v4" />
+          <path d="M7 8h10M7 12h6" />
+        </svg>
+      );
+    case 'backup_server':
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="17 8 12 3 7 8" />
+          <line x1="12" y1="3" x2="12" y2="15" />
+        </svg>
+      );
+    case 'honeypot':
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
+          <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z" />
+          <path d="M12 8v4l3 3" />
+        </svg>
+      );
+    default:
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
+          <rect x="2" y="3" width="20" height="14" rx="2" />
+        </svg>
+      );
+  }
+};
+
+const STATUS_LABEL: Record<NodeStatus, string> = {
+  healthy:      'Healthy',
+  compromised:  'Compromised',
+  isolated:     'Isolated',
+  encrypted:    'Encrypted',
+  offline:      'Offline',
+  patched:      'Patched',
 };
 
 export function NetworkTopologyView() {
-  const topology = useAppStore((s) => s.topology);
-  const selectedNodeId = useAppStore((s) => s.selectedNodeId);
+  const topology        = useAppStore((s) => s.topology);
+  const selectedNodeId  = useAppStore((s) => s.selectedNodeId);
   const setSelectedNodeId = useAppStore((s) => s.setSelectedNodeId);
-  const alerts = useAppStore((s) => s.alerts);
+  const alerts          = useAppStore((s) => s.alerts);
 
   const selectedNode = topology.find((n) => n.nodeId === selectedNodeId) || null;
 
-  // active attacked node IDs
-  const activeAttacks = alerts
-    .filter((a) => (a.status === 'new' || a.status === 'investigating') && !a.isFalsePositive)
-    .map((a) => a.targetNodeId);
+  // nodes with active unresolved attacks
+  const attackedIds = new Set(
+    alerts
+      .filter((a) => (a.status === 'new' || a.status === 'investigating') && !a.isFalsePositive)
+      .map((a) => a.targetNodeId),
+  );
 
-  // partition nodes into enterprise zones
-  const dmzNodes = topology.filter((n) => ['fw-01', 'web-01', 'mail-01'].includes(n.nodeId));
-  const coreNodes = topology.filter((n) => ['dc-01', 'app-01'].includes(n.nodeId));
-  const vaultNodes = topology.filter((n) => ['db-01', 'backup-01'].includes(n.nodeId));
-  const endpointNodes = topology.filter((n) => n.type === 'workstation');
-  const decoyNodes = topology.filter((n) => n.type === 'honeypot');
+  // zone partitions
+  const perimeter = topology.filter((n) => ['fw-01', 'web-01', 'mail-01'].includes(n.nodeId));
+  const core      = topology.filter((n) => ['dc-01', 'app-01'].includes(n.nodeId));
+  const vault     = topology.filter((n) => ['db-01', 'backup-01'].includes(n.nodeId));
+  const endpoints = topology.filter((n) => n.type === 'workstation');
+  const deception = topology.filter((n) => n.type === 'honeypot');
 
-  const getStatusBadge = (status: NodeStatus, isAttacked: boolean) => {
-    if (status === 'isolated') {
-      return <span className={`${styles.statusBadge} ${styles.statusIsolated}`}>🔒 Isolated by AI</span>;
-    }
-    if (status === 'encrypted') {
-      return <span className={`${styles.statusBadge} ${styles.statusEncrypted}`}>💀 Encrypted</span>;
-    }
-    if (status === 'compromised' || isAttacked) {
-      return <span className={`${styles.statusBadge} ${styles.statusCompromised}`}>⚠️ Under Attack</span>;
-    }
-    return <span className={`${styles.statusBadge} ${styles.statusHealthy}`}>● Normal</span>;
-  };
+  // live counts
+  const compromisedCount = topology.filter((n) => n.status === 'compromised').length;
+  const isolatedCount    = topology.filter((n) => n.status === 'isolated').length;
+  const healthyCount     = topology.filter((n) => n.status === 'healthy').length;
 
-  const renderNodeCard = (node: NetworkNode) => {
-    const isSelected = selectedNodeId === node.nodeId;
-    const isAttacked = activeAttacks.includes(node.nodeId);
+  const renderNode = (node: NetworkNode) => {
+    const isSelected    = node.nodeId === selectedNodeId;
+    const isAttacked    = attackedIds.has(node.nodeId);
     const isCompromised = node.status === 'compromised' || isAttacked;
-    const isIsolated = node.status === 'isolated';
+    const isIsolated    = node.status === 'isolated';
+    const isEncrypted   = node.status === 'encrypted';
 
-    let cardClass = styles.nodeCard;
-    if (isSelected) cardClass += ` ${styles.nodeCardSelected}`;
-    if (isCompromised) cardClass += ` ${styles.nodeCardCompromised}`;
-    if (isIsolated) cardClass += ` ${styles.nodeCardIsolated}`;
+    let cardMod = '';
+    if (isSelected)    cardMod = styles.nodeSelected;
+    else if (isEncrypted)  cardMod = styles.nodeEncrypted;
+    else if (isCompromised) cardMod = styles.nodeCompromised;
+    else if (isIsolated) cardMod = styles.nodeIsolated;
 
     return (
-      <div
+      <button
         key={node.nodeId}
-        className={cardClass}
+        className={`${styles.nodeCard} ${cardMod}`}
         onClick={() => setSelectedNodeId(isSelected ? null : node.nodeId)}
+        title={`${node.hostname} (${node.ip}) — click to inspect`}
       >
-        <div className={styles.nodeTop}>
-          <div className={styles.nodeTitle}>
-            <span>{NODE_ICONS[node.type] || '🖥️'}</span>
-            <span>{node.hostname}</span>
-          </div>
-          {getStatusBadge(node.status, isAttacked)}
+        <span className={styles.nodeIcon}>
+          <RoleIcon type={node.type} size={13} />
+        </span>
+        <div className={styles.nodeInfo}>
+          <span className={styles.nodeHostname}>{node.hostname}</span>
+          <span className={styles.nodeIp}>{node.ip}</span>
         </div>
-
-        <div className={styles.nodeSub}>
-          <span>IP: {node.ip}</span>
-          <span style={{ color: '#58a6ff' }}>[{node.nodeId}]</span>
-        </div>
-      </div>
+        <span className={`${styles.nodeStatus} ${getStatusMod(node.status, isAttacked)}`}>
+          {getStatusDot(node.status, isAttacked)}
+          {isAttacked && node.status !== 'isolated' ? 'Under Attack' : STATUS_LABEL[node.status]}
+        </span>
+      </button>
     );
   };
 
+  const getStatusMod = (status: NodeStatus, attacked: boolean) => {
+    if (status === 'isolated')   return styles.statusIsolated;
+    if (status === 'encrypted')  return styles.statusEncrypted;
+    if (status === 'compromised' || attacked) return styles.statusCompromised;
+    if (status === 'patched')    return styles.statusPatched;
+    return styles.statusHealthy;
+  };
+
+  const getStatusDot = (status: NodeStatus, attacked: boolean) => {
+    let color = 'var(--green)';
+    if (status === 'isolated') color = 'var(--purple)';
+    else if (status === 'encrypted') color = 'var(--red)';
+    else if (status === 'compromised' || attacked) color = 'var(--red)';
+    else if (status === 'patched') color = 'var(--cyan)';
+    return <span className={styles.dot} style={{ background: color }} />;
+  };
+
+  const renderZone = (
+    label: string,
+    sublabel: string,
+    nodes: NetworkNode[],
+    accentColor: string,
+    isRow = false,
+  ) => (
+    <div className={styles.zone}>
+      <div className={styles.zoneHeader} style={{ borderLeftColor: accentColor }}>
+        <span className={styles.zoneLabel}>{label}</span>
+        <span className={styles.zoneSublabel}>{sublabel}</span>
+      </div>
+      <div className={isRow ? styles.nodeRow : styles.nodeList}>
+        {nodes.map(renderNode)}
+      </div>
+    </div>
+  );
+
   return (
     <div className={styles.container}>
-      <div className={styles.topBarInfo}>
-        <span style={{ fontWeight: 600, color: '#f0f6fc', letterSpacing: '0.04em' }}>
-          ENTERPRISE ARCHITECTURE TOPOLOGY (12 HOSTS)
-        </span>
-        <div className={styles.zoneLegend}>
-          <div className={styles.legendItem}>
-            <span className={styles.legendDot} style={{ background: '#3fb950' }} />
-            <span>Healthy Host</span>
-          </div>
-          <div className={styles.legendItem}>
-            <span className={styles.legendDot} style={{ background: '#f85149' }} />
-            <span>Active Intrusion</span>
-          </div>
-          <div className={styles.legendItem}>
-            <span className={styles.legendDot} style={{ background: '#58a6ff' }} />
-            <span>Isolated by AI Agent</span>
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.diagramArea}>
-        <div className={styles.zoneGrid}>
-          {/* ZONE 1: DMZ */}
-          <div className={styles.zoneBox}>
-            <div className={styles.zoneHeader}>
-              <span>Perimeter & DMZ</span>
-              <span style={{ color: '#58a6ff', fontSize: 10 }}>Public Facing</span>
-            </div>
-            <div className={styles.nodeList}>
-              {dmzNodes.map(renderNodeCard)}
-            </div>
-          </div>
-
-          {/* ZONE 2: CORE SERVICES */}
-          <div className={styles.zoneBox}>
-            <div className={styles.zoneHeader}>
-              <span>Core Enterprise LAN</span>
-              <span style={{ color: '#58a6ff', fontSize: 10 }}>Identity & Apps</span>
-            </div>
-            <div className={styles.nodeList}>
-              {coreNodes.map(renderNodeCard)}
-            </div>
-          </div>
-
-          {/* ZONE 3: DATA VAULT */}
-          <div className={styles.zoneBox}>
-            <div className={styles.zoneHeader}>
-              <span>Secure Data Vault</span>
-              <span style={{ color: '#d29922', fontSize: 10 }}>High Value Target</span>
-            </div>
-            <div className={styles.nodeList}>
-              {vaultNodes.map(renderNodeCard)}
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.zoneGrid} style={{ gridTemplateColumns: '2fr 1fr' }}>
-          {/* ZONE 4: WORKSTATIONS */}
-          <div className={styles.zoneBox}>
-            <div className={styles.zoneHeader}>
-              <span>User Endpoint Fleet</span>
-              <span style={{ color: '#8b949e', fontSize: 10 }}>Initial Phishing Vectors</span>
-            </div>
-            <div className={styles.endpointList}>
-              {endpointNodes.map(renderNodeCard)}
-            </div>
-          </div>
-
-          {/* ZONE 5: HONEYPOT */}
-          <div className={styles.zoneBox}>
-            <div className={styles.zoneHeader}>
-              <span>Deception Net</span>
-              <span style={{ color: '#d29922', fontSize: 10 }}>Adversary Trap</span>
-            </div>
-            <div className={styles.nodeList}>
-              {decoyNodes.map(renderNodeCard)}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* NODE INSPECTION DRAWER */}
-      {selectedNode && (
-        <aside className={styles.inspectorDrawer}>
-          <div className={styles.inspectorHeader}>
-            <span className={styles.inspectorTitle}>
-              {NODE_ICONS[selectedNode.type]} {selectedNode.hostname}
+      {/* header — live host status summary */}
+      <div className={styles.header}>
+        <span className={styles.title}>Enterprise Network — 12 Hosts</span>
+        <div className={styles.hostSummary}>
+          <span className={styles.hostCount} style={{ color: 'var(--green)' }}>
+            {healthyCount} healthy
+          </span>
+          {compromisedCount > 0 && (
+            <span className={styles.hostCount} style={{ color: 'var(--red)' }}>
+              {compromisedCount} compromised
             </span>
-            <button className={styles.inspectorClose} onClick={() => setSelectedNodeId(null)}>
-              ✕
-            </button>
-          </div>
-
-          <div className={styles.inspectorRow}>
-            <span className={styles.inspectorKey}>Role & Type</span>
-            <span className={styles.inspectorVal}>{selectedNode.type.replace('_', ' ').toUpperCase()}</span>
-          </div>
-
-          <div className={styles.inspectorRow}>
-            <span className={styles.inspectorKey}>IP Address</span>
-            <span className={styles.inspectorVal}>{selectedNode.ip}</span>
-          </div>
-
-          <div className={styles.inspectorRow}>
-            <span className={styles.inspectorKey}>Operating System</span>
-            <span className={styles.inspectorVal}>{selectedNode.os}</span>
-          </div>
-
-          <div className={styles.inspectorRow}>
-            <span className={styles.inspectorKey}>Current Status</span>
-            <span className={styles.inspectorVal} style={{ fontWeight: 600 }}>
-              {selectedNode.status.toUpperCase()}
-            </span>
-          </div>
-
-          <div className={styles.inspectorRow}>
-            <span className={styles.inspectorKey}>Active Listening Services</span>
-            <span className={styles.inspectorVal}>
-              {selectedNode.services.join(', ') || 'None'}
-            </span>
-          </div>
-
-          <div className={styles.inspectorRow}>
-            <span className={styles.inspectorKey}>Open Network Ports</span>
-            <span className={styles.inspectorVal}>
-              {selectedNode.openPorts.map((p) => `:${p}`).join(' ') || 'None'}
-            </span>
-          </div>
-
-          {selectedNode.vulnerabilities.length > 0 && (
-            <div className={styles.inspectorRow}>
-              <span className={styles.inspectorKey} style={{ color: '#f85149' }}>Known Vulnerabilities</span>
-              <span className={styles.inspectorVal} style={{ color: '#f85149' }}>
-                {selectedNode.vulnerabilities.join(', ')}
-              </span>
-            </div>
           )}
+          {isolatedCount > 0 && (
+            <span className={styles.hostCount} style={{ color: 'var(--purple)' }}>
+              {isolatedCount} isolated
+            </span>
+          )}
+        </div>
+      </div>
 
-          <div style={{ marginTop: 'auto', paddingTop: 10 }}>
-            <button
-              style={{
-                width: '100%',
-                padding: '8px',
-                background: '#21262d',
-                border: '1px solid #30363d',
-                borderRadius: '4px',
-                color: '#c9d1d9',
-                cursor: 'pointer',
-                fontFamily: 'var(--font-ui)',
-                fontSize: '11px',
-              }}
-              onClick={() => setSelectedNodeId(null)}
-            >
-              Close Inspector
-            </button>
+      {/* zone diagram */}
+      <div className={styles.diagram}>
+        {/* row 1: perimeter + core + vault */}
+        <div className={styles.row3}>
+          {renderZone('Perimeter & DMZ', 'Public Facing', perimeter, 'var(--blue)')}
+          {renderZone('Core Enterprise', 'Identity & Apps', core, 'var(--amber)')}
+          {renderZone('Secure Vault', 'High Value Target', vault, 'var(--red)')}
+        </div>
+        {/* row 2: endpoints + deception */}
+        <div className={styles.row2}>
+          {renderZone('User Endpoints', 'Phishing Vectors', endpoints, 'var(--text-3)', true)}
+          {renderZone('Deception Net', 'Honeypot Trap', deception, 'var(--purple)')}
+        </div>
+      </div>
+
+      {/* inspector drawer */}
+      {selectedNode && (
+        <aside className={`${styles.drawer} animate-fade-in`}>
+          <div className={styles.drawerHeader}>
+            <div className={styles.drawerTitle}>
+              <span className={styles.drawerIcon}><RoleIcon type={selectedNode.type} size={15} /></span>
+              <span>{selectedNode.hostname}</span>
+            </div>
+            <button className={styles.drawerClose} onClick={() => setSelectedNodeId(null)}>✕</button>
           </div>
+
+          <div className={styles.drawerBody}>
+            <Row label="Node ID"   value={selectedNode.nodeId} mono />
+            <Row label="IP Address" value={selectedNode.ip} mono />
+            <Row label="Role"      value={selectedNode.type.replace(/_/g, ' ').toUpperCase()} />
+            <Row label="OS"        value={selectedNode.os} />
+            <Row
+              label="Status"
+              value={selectedNode.status.toUpperCase()}
+              color={
+                selectedNode.status === 'healthy' ? 'var(--green)' :
+                selectedNode.status === 'isolated' ? 'var(--purple)' :
+                selectedNode.status === 'compromised' ? 'var(--red)' : 'var(--amber)'
+              }
+            />
+            <Row label="Services"  value={selectedNode.services.join(', ') || 'none'} />
+            <Row label="Ports"     value={selectedNode.openPorts.map((p) => `:${p}`).join(' ') || 'none'} mono />
+            {selectedNode.vulnerabilities.length > 0 && (
+              <Row
+                label="CVEs"
+                value={selectedNode.vulnerabilities.join(' · ')}
+                color="var(--red)"
+                mono
+              />
+            )}
+            <Row label="Critical Asset" value={selectedNode.isCritical ? 'YES' : 'NO'} color={selectedNode.isCritical ? 'var(--amber)' : 'var(--text-2)'} />
+          </div>
+
+          <button className={styles.drawerCloseBtn} onClick={() => setSelectedNodeId(null)}>
+            Close Inspector
+          </button>
         </aside>
       )}
+    </div>
+  );
+}
+
+function Row({ label, value, mono, color }: { label: string; value: string; mono?: boolean; color?: string }) {
+  return (
+    <div className={styles.drawerRow}>
+      <span className={styles.drawerKey}>{label}</span>
+      <span
+        className={styles.drawerVal}
+        style={{
+          fontFamily: mono ? 'var(--font-mono)' : undefined,
+          color: color,
+        }}
+      >
+        {value}
+      </span>
     </div>
   );
 }

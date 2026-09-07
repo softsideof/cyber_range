@@ -1,7 +1,6 @@
 'use client';
 
-// main dashboard page integrating 3D visual, SIEM telemetry, policy logs, and attack construction
-
+// main dashboard page — network map + threat intelligence + defense log
 import React, { useState, useEffect } from 'react';
 import { useAppStore } from '@/store';
 import { useWorker } from '@/hooks/useWorker';
@@ -13,6 +12,7 @@ import { MetricsBar } from '@/components/panels/MetricsBar';
 import { NetworkTopologyView } from '@/components/network/NetworkTopologyView';
 import { AlertQueue } from '@/components/panels/AlertQueue';
 import { AgentLog } from '@/components/panels/AgentLog';
+import { ThreatIntelFeed } from '@/components/panels/ThreatIntelFeed';
 import { MitreHeatmap } from '@/components/panels/MitreHeatmap';
 import { ScoreCard } from '@/components/panels/ScoreCard';
 import { ScenarioBriefing } from '@/components/panels/ScenarioBriefing';
@@ -25,24 +25,22 @@ export default function DashboardPage() {
   const { launch, launchCustom, restart, stepOnce } = useWorker();
   useKeyboard(launch, stepOnce, restart);
 
-  const mode = useAppStore((s) => s.mode);
-  const activeTab = useAppStore((s) => s.activeTab);
+  const mode       = useAppStore((s) => s.mode);
+  const activeTab  = useAppStore((s) => s.activeTab);
   const showBriefing = useAppStore((s) => s.showBriefing);
-  const setShowBriefing = useAppStore((s) => s.setShowBriefing);
+  const setShowBriefing    = useAppStore((s) => s.setShowBriefing);
   const setShowAttackBuilder = useAppStore((s) => s.setShowAttackBuilder);
   const nextScenario = useAppStore((s) => s.nextScenario);
 
-  // desktop bottom-right tab state
-  const [rightTab, setRightTab] = useState<'agent' | 'mitre'>('agent');
+  // right column bottom-section tab
+  const [rightTab, setRightTab] = useState<'agent' | 'alerts' | 'mitre'>('agent');
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    const check = () => setIsMobile(window.innerWidth < 1024);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
   }, []);
 
   const handleNextScenario = () => {
@@ -57,7 +55,7 @@ export default function DashboardPage() {
 
       <main className={styles.workspace}>
         {isMobile ? (
-          // Mobile single-panel view
+          // mobile: single active panel
           <div className={styles.mobileOnlyPanel}>
             {activeTab === 'network' && (
               mode === 'complete' ? (
@@ -70,10 +68,11 @@ export default function DashboardPage() {
                 <NetworkTopologyView />
               )
             )}
-            {activeTab === 'alerts' && <AlertQueue />}
-            {activeTab === 'agent' && <AgentLog onStepOnce={stepOnce} onRestart={restart} />}
-            {activeTab === 'mitre' && <MitreHeatmap />}
-            {activeTab === 'score' && (
+            {activeTab === 'alerts'  && <AlertQueue />}
+            {activeTab === 'agent'   && <AgentLog onStepOnce={stepOnce} onRestart={restart} />}
+            {activeTab === 'mitre'   && <MitreHeatmap />}
+            {activeTab === 'intel'   && <ThreatIntelFeed />}
+            {activeTab === 'score'   && (
               <ScoreCard
                 onRestart={restart}
                 onOpenBuilder={() => setShowAttackBuilder(true)}
@@ -82,8 +81,9 @@ export default function DashboardPage() {
             )}
           </div>
         ) : (
-          // Desktop split layout: 2D Enterprise Network on left, SIEM & AI Story on right
+          // desktop: 3-column layout
           <>
+            {/* LEFT — network map (55%) */}
             <div className={styles.mainVisual}>
               {mode === 'complete' ? (
                 <ScoreCard
@@ -96,33 +96,41 @@ export default function DashboardPage() {
               )}
             </div>
 
+            {/* RIGHT COLUMN (45%) — split vertically */}
             <aside className={styles.rightRail}>
-              <div className={styles.alertSection}>
-                <AlertQueue />
+              {/* TOP: Threat Intelligence Feed (45%) */}
+              <div className={styles.intelSection}>
+                <ThreatIntelFeed />
               </div>
 
-              <div className={styles.tabbedSection}>
+              {/* BOTTOM: tabbed — Agent Log / Alerts / MITRE (55%) */}
+              <div className={styles.logSection}>
+                {/* tab bar */}
                 <div className={styles.tabBar}>
                   <button
-                    className={`${styles.tabBtn} ${rightTab === 'agent' ? styles.tabBtnActive : ''}`}
+                    className={`${styles.tabBtn} ${rightTab === 'agent' ? styles.tabActive : ''}`}
                     onClick={() => setRightTab('agent')}
                   >
-                    Incident Story & AI Defense
+                    Defense Log
                   </button>
                   <button
-                    className={`${styles.tabBtn} ${rightTab === 'mitre' ? styles.tabBtnActive : ''}`}
+                    className={`${styles.tabBtn} ${rightTab === 'alerts' ? styles.tabActive : ''}`}
+                    onClick={() => setRightTab('alerts')}
+                  >
+                    SIEM Alerts
+                  </button>
+                  <button
+                    className={`${styles.tabBtn} ${rightTab === 'mitre' ? styles.tabActive : ''}`}
                     onClick={() => setRightTab('mitre')}
                   >
-                    MITRE ATT&CK Matrix
+                    ATT&CK
                   </button>
                 </div>
 
                 <div className={styles.tabContent}>
-                  {rightTab === 'agent' ? (
-                    <AgentLog onStepOnce={stepOnce} onRestart={restart} />
-                  ) : (
-                    <MitreHeatmap />
-                  )}
+                  {rightTab === 'agent' && <AgentLog onStepOnce={stepOnce} onRestart={restart} />}
+                  {rightTab === 'alerts' && <AlertQueue />}
+                  {rightTab === 'mitre' && <MitreHeatmap />}
                 </div>
               </div>
             </aside>
@@ -133,7 +141,7 @@ export default function DashboardPage() {
       <StatusBar />
       <MobileTabBar />
 
-      {/* overlays & modals */}
+      {/* overlays */}
       {showBriefing && <ScenarioBriefing onDismiss={() => setShowBriefing(false)} />}
       <ArchitectureView />
       <AttackBuilder onDeployCustom={launchCustom} />

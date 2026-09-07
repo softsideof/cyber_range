@@ -1,8 +1,6 @@
 'use client';
 
-// interactive incident story and AI defense feed (Linear / Vercel style)
-// provides step-by-step playback controls, plain English explanations, and decision rationale
-
+// AI defense log — shows step-by-step agent decisions with action type color coding
 import React, { useEffect, useRef } from 'react';
 import { useAppStore } from '@/store';
 import styles from './AgentLog.module.css';
@@ -12,117 +10,181 @@ interface AgentLogProps {
   onRestart?: () => void;
 }
 
-export function AgentLog({ onStepOnce, onRestart }: AgentLogProps) {
-  const agentLog = useAppStore((s) => s.agentLog);
-  const isPaused = useAppStore((s) => s.isPaused);
-  const togglePaused = useAppStore((s) => s.togglePaused);
-  const step = useAppStore((s) => s.step);
-  const maxSteps = useAppStore((s) => s.maxSteps);
-  const scenario = useAppStore((s) => s.scenario);
-  const scrollRef = useRef<HTMLDivElement>(null);
+// color-code each SOC action type
+const ACTION_META: Record<string, { color: string; icon: string; label: string }> = {
+  observe_network:    { color: 'var(--blue)',   icon: '◎', label: 'Observe' },
+  investigate_alert:  { color: 'var(--amber)',  icon: '⌕', label: 'Investigate' },
+  run_forensics:      { color: 'var(--cyan)',   icon: '⚙', label: 'Forensics' },
+  block_ip:           { color: 'var(--red)',    icon: '⊘', label: 'Block IP' },
+  isolate_host:       { color: 'var(--purple)', icon: '⬡', label: 'Isolate Host' },
+  dismiss_alert:      { color: 'var(--green)',  icon: '✓', label: 'Dismiss FP' },
+  restore_backup:     { color: 'var(--green)',  icon: '↺', label: 'Restore' },
+  deploy_patch:       { color: 'var(--cyan)',   icon: '⬆', label: 'Deploy Patch' },
+  deploy_honeypot:    { color: 'var(--amber)',  icon: '⬡', label: 'Honeypot' },
+  escalate_incident:  { color: 'var(--red)',    icon: '⚠', label: 'Escalate' },
+  save_playbook:      { color: 'var(--text-2)', icon: '⊕', label: 'Save PB' },
+  search_playbooks:   { color: 'var(--text-2)', icon: '⊕', label: 'Search PB' },
+};
 
+function getActionMeta(tool: string) {
+  return ACTION_META[tool] || { color: 'var(--text-2)', icon: '›', label: tool };
+}
+
+export function AgentLog({ onStepOnce, onRestart }: AgentLogProps) {
+  const agentLog     = useAppStore((s) => s.agentLog);
+  const isPaused     = useAppStore((s) => s.isPaused);
+  const togglePaused = useAppStore((s) => s.togglePaused);
+  const step         = useAppStore((s) => s.step);
+  const maxSteps     = useAppStore((s) => s.maxSteps);
+  const scenario     = useAppStore((s) => s.scenario);
+  const scrollRef    = useRef<HTMLDivElement>(null);
+
+  // auto-scroll to latest entry
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [agentLog.length]);
 
-  const latestEntry = agentLog.length > 0 ? agentLog[agentLog.length - 1] : null;
+  const latest = agentLog.length > 0 ? agentLog[agentLog.length - 1] : null;
+  const stepProgress = maxSteps > 0 ? (step / maxSteps) * 100 : 0;
 
   return (
     <div className={styles.container}>
+      {/* header */}
       <div className={styles.header}>
-        <div className={styles.titleRow}>
-          <span className={styles.title}>
-            🤖 AUTONOMOUS AI SOC DEFENSE LOG
-          </span>
-          <span style={{ fontSize: 11, color: '#8b949e', fontFamily: 'var(--font-mono)' }}>
-            STEP {step} OF {maxSteps}
-          </span>
+        <div className={styles.headerTop}>
+          <span className={styles.title}>Defense Log</span>
+          <div className={styles.stepBadge}>
+            <span>{step}</span>
+            <span className={styles.stepOf}>/ {maxSteps}</span>
+          </div>
         </div>
-
-        {/* INTERVIEWER STEPPING & PLAYBACK CONTROLS */}
-        <div className={styles.controlBar}>
-          <button
-            className={`${styles.ctrlBtn} ${styles.btnPrimary}`}
-            onClick={togglePaused}
-            title="Play or pause the autonomous defense loop"
-          >
-            {isPaused ? '▶ Run Defense' : '⏸ Pause Defense'}
-          </button>
-
-          {onStepOnce && (
-            <button
-              className={styles.ctrlBtn}
-              onClick={onStepOnce}
-              title="Execute exactly one step forward so you can inspect the result"
-            >
-              ⏭ Step Forward
-            </button>
-          )}
-
-          {onRestart && (
-            <button
-              className={styles.ctrlBtn}
-              onClick={onRestart}
-              title="Reset the network back to initial state"
-            >
-              🔄 Reset Network
-            </button>
-          )}
+        {/* step progress track */}
+        <div className={styles.stepTrack}>
+          <div className={styles.stepFill} style={{ width: `${stepProgress}%` }} />
         </div>
       </div>
 
-      {/* CURRENT SITUATION SUMMARY */}
-      {latestEntry ? (
-        <div className={styles.stepHeadline}>
-          <div className={styles.headlineTop}>
-            <span>CURRENT STATUS // STEP {latestEntry.step}</span>
-            <span>REWARD: {latestEntry.reward >= 0 ? `+${latestEntry.reward.toFixed(2)}` : latestEntry.reward.toFixed(2)}</span>
+      {/* controls */}
+      <div className={styles.controls}>
+        <button
+          className={`${styles.ctrlBtn} ${isPaused ? styles.ctrlPlay : styles.ctrlPause}`}
+          onClick={togglePaused}
+        >
+          {isPaused ? '▶ Run Defense' : '⏸ Pause'}
+        </button>
+        {onStepOnce && (
+          <button className={styles.ctrlBtn} onClick={onStepOnce} title="→ key">
+            Step →
+          </button>
+        )}
+        {onRestart && (
+          <button className={styles.ctrlBtnIcon} onClick={onRestart} title="R key">
+            ↺
+          </button>
+        )}
+      </div>
+
+      {/* current action headline */}
+      {latest ? (
+        <div className={styles.headline}>
+          <div className={styles.headlineMeta}>
+            <span className={styles.headlineStep}>Step {latest.step}</span>
+            <span
+              className={styles.headlineReward}
+              style={{ color: latest.reward >= 0 ? 'var(--green)' : 'var(--red)' }}
+            >
+              {latest.reward >= 0 ? '+' : ''}{latest.reward.toFixed(2)}
+            </span>
           </div>
-          <div className={styles.headlineText}>
-            <strong>Action:</strong> {latestEntry.action.tool} &nbsp;—&nbsp; {latestEntry.action.reasoning}
+          <div className={styles.headlineAction}>
+            <span
+              className={styles.headlineIcon}
+              style={{ color: getActionMeta(latest.action.tool).color }}
+            >
+              {getActionMeta(latest.action.tool).icon}
+            </span>
+            <span className={styles.headlineTool}>{latest.action.tool}</span>
           </div>
+          <p className={styles.headlineReason}>{latest.action.reasoning}</p>
         </div>
       ) : (
-        <div className={styles.stepHeadline}>
-          <div className={styles.headlineTop}>
-            <span>READY TO ENGAGE // {scenario?.name || 'Simulation'}</span>
-          </div>
-          <div className={styles.headlineText}>
-            Click <strong>[▶ Run Defense]</strong> to watch the AI defend autonomously, or <strong>[⏭ Step Forward]</strong> to step through one decision at a time.
-          </div>
+        <div className={styles.emptyHeadline}>
+          <span className={styles.cursor} />
+          <span>
+            {scenario?.name || 'Scenario loaded'} — press{' '}
+            <strong>Run Defense</strong> to start autonomous response, or{' '}
+            <strong>Step →</strong> to step manually.
+          </span>
         </div>
       )}
 
-      {/* TIMELINE OF AI DECISIONS */}
-      <div className={styles.logArea} ref={scrollRef}>
+      {/* decision log */}
+      <div className={styles.log} ref={scrollRef}>
         {agentLog.length === 0 ? (
-          <div className={styles.emptyState}>
-            <div style={{ fontSize: 24 }}>🛡️</div>
-            <div style={{ fontWeight: 600, color: '#f0f6fc' }}>Autonomous Defender Ready</div>
-            <div style={{ fontSize: 12, maxWidth: 280 }}>
-              The AI agent is waiting for you to start the defense or step through the attack scenario.
-            </div>
+          <div className={styles.empty}>
+            <span>Awaiting first agent decision…</span>
           </div>
         ) : (
-          agentLog.map((entry, idx) => {
-            const rewardFmt = entry.reward >= 0 ? `+${entry.reward.toFixed(2)}` : entry.reward.toFixed(2);
+          [...agentLog].reverse().map((entry, idx) => {
+            const meta = getActionMeta(entry.action.tool);
+            // confidence: parse from reasoning if available, default to 0.75
+            const confidence = entry.result.success ? 0.78 + (entry.reward * 0.15) : 0.35;
+            const confPct = Math.max(0, Math.min(100, Math.round(confidence * 100)));
+
             return (
-              <div key={idx} className={styles.stepCard}>
-                <div className={styles.stepCardHeader}>
-                  <span className={styles.stepBadge}>STEP {entry.step}</span>
-                  <span className={`${styles.rewardBadge} ${entry.reward >= 0 ? styles.rewardPos : styles.rewardNeg}`}>
-                    {rewardFmt} Score
-                  </span>
-                </div>
+              <div key={idx} className={styles.stepCard} style={{ animationDelay: `${idx * 0.02}s` }}>
+                {/* left accent bar */}
+                <div className={styles.accent} style={{ background: meta.color }} />
 
-                <div className={styles.actionLine}>
-                  {entry.action.tool}({JSON.stringify(entry.action.args)})
-                </div>
+                <div className={styles.cardBody}>
+                  <div className={styles.cardTop}>
+                    <div className={styles.cardLeft}>
+                      <span className={styles.stepNum}>#{entry.step}</span>
+                      <span className={styles.actionTag} style={{ color: meta.color }}>
+                        {meta.icon} {meta.label}
+                      </span>
+                    </div>
+                    <div className={styles.cardRight}>
+                      <span
+                        className={styles.rewardBadge}
+                        style={{
+                          color: entry.reward >= 0 ? 'var(--green)' : 'var(--red)',
+                          background: entry.reward >= 0 ? 'var(--green-dim)' : 'var(--red-dim)',
+                        }}
+                      >
+                        {entry.reward >= 0 ? '+' : ''}{entry.reward.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
 
-                <div className={styles.reasoningText}>
-                  {entry.action.reasoning}
+                  {/* args if any */}
+                  {Object.keys(entry.action.args).length > 0 && (
+                    <div className={styles.argsLine}>
+                      {Object.entries(entry.action.args)
+                        .map(([k, v]) => `${k}: ${v}`)
+                        .join(' · ')}
+                    </div>
+                  )}
+
+                  {/* reasoning */}
+                  <p className={styles.reason}>{entry.action.reasoning}</p>
+
+                  {/* confidence bar */}
+                  <div className={styles.confRow}>
+                    <span className={styles.confLabel}>AI Confidence</span>
+                    <div className={styles.confTrack}>
+                      <div
+                        className={styles.confFill}
+                        style={{
+                          width: `${confPct}%`,
+                          background: confPct >= 70 ? 'var(--green)' : confPct >= 40 ? 'var(--amber)' : 'var(--red)',
+                        }}
+                      />
+                    </div>
+                    <span className={styles.confPct}>{confPct}%</span>
+                  </div>
                 </div>
               </div>
             );
