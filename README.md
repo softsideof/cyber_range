@@ -144,6 +144,18 @@ python plot_rewards.py --simulate --episodes 50
 python -m pytest tests/ -q
 ```
 
+## Interactive Web GUI Dashboard
+
+An interactive Next.js 14 SOC defense platform is located in `dashboard/`, featuring real-time 2D network topology, adversary campaign injector (WannaCry, SolarWinds, Ghost Operator), SIEM triage alerts, and CyberJudge evaluation. It runs the simulation engine client-side with zero backend dependencies and is ready for Vercel deployment:
+
+```bash
+cd dashboard
+npm install
+npm run dev
+# Open http://localhost:3000
+```
+
+
 ## Cloud Environment Formatting
 
 Native support is provided for generalized deployment on containerized environments such as HuggingFace Spaces.
