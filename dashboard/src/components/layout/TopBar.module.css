@@ -1,0 +1,120 @@
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  background: #080b12;
+  border-bottom: 1px solid var(--border);
+  padding: 0 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  user-select: none;
+  gap: 8px;
+}
+
+@media (max-width: 1024px) {
+  .topBar {
+    padding: 0 8px;
+    height: 40px;
+  }
+}
+
+.leftSection {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.brand {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.liveDot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan);
+}
+
+.centerSection {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.scenarioSelect {
+  background: #0e1422;
+  border: 1px solid var(--border-bright);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 5px 10px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.scenarioSelect:focus {
+  outline: none;
+  border-color: var(--cyan);
+}
+
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ctrlBtn {
+  background: #0f1422;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 5px 10px;
+  border-radius: 2px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.ctrlBtn:hover {
+  background: #151d30;
+  border-color: var(--cyan);
+  color: #fff;
+}
+
+.btnWeapon {
+  background: rgba(255, 42, 85, 0.18);
+  border: 1px solid var(--red);
+  color: #ff4d6d;
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(255, 42, 85, 0.2);
+}
+
+.btnWeapon:hover {
+  background: var(--red);
+  color: #fff;
+  box-shadow: 0 0 16px rgba(255, 42, 85, 0.6);
+}
+
+@media (max-width: 768px) {
+  .hideMobile {
+    display: none !important;
+  }
+}
+
+.divider {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+}

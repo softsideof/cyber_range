@@ -1,0 +1,238 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(5, 7, 12, 0.88);
+  backdrop-filter: blur(8px);
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.drawer {
+  width: 100%;
+  max-width: 560px;
+  height: 100%;
+  background: #090d16;
+  border-left: 1px solid var(--border-bright);
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-mono);
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.8);
+  animation: slideLeft 0.22s ease-out;
+}
+
+@keyframes slideLeft {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: #0d121e;
+  border-bottom: 1px solid var(--border);
+}
+
+.title {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--red);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.closeBtn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  padding: 3px 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.tabNav {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: #0b0f19;
+}
+
+.tabBtn {
+  flex: 1;
+  padding: 11px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.tabBtnActive {
+  color: var(--red);
+  border-bottom-color: var(--red);
+  background: rgba(255, 42, 85, 0.08);
+}
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.templateCard {
+  background: #0e1320;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--red);
+  border-radius: 2px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.templateCard:hover {
+  border-color: var(--red);
+  background: #131b2c;
+  box-shadow: 0 0 15px rgba(255, 42, 85, 0.15);
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.actorTag {
+  font-size: 9.5px;
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.templateName {
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.templateDesc {
+  font-size: 11px;
+  color: var(--text-2);
+  line-height: 1.45;
+}
+
+.killChainRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #090c15;
+  padding: 6px 8px;
+  border-radius: 2px;
+  border: 1px solid var(--border-subtle);
+  overflow-x: auto;
+}
+
+.chainStep {
+  font-size: 9px;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+.chainActive {
+  color: var(--red);
+  font-weight: 700;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 10px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.input, .select {
+  padding: 8px 12px;
+  background: #0b0f1a;
+  border: 1px solid var(--border-bright);
+  border-radius: 2px;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.input:focus, .select:focus {
+  outline: none;
+  border-color: var(--cyan);
+}
+
+.checkboxGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #0c101b;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.footer {
+  padding: 14px 20px;
+  background: #0c101c;
+  border-top: 1px solid var(--border);
+}
+
+.deployBtn {
+  width: 100%;
+  padding: 12px;
+  background: var(--red);
+  color: #fff;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  letter-spacing: 0.06em;
+  box-shadow: 0 0 16px rgba(255, 42, 85, 0.4);
+  transition: all 0.15s ease;
+}
+
+.deployBtn:hover {
+  background: #ff476d;
+  box-shadow: 0 0 24px rgba(255, 42, 85, 0.6);
+}

@@ -1,0 +1,100 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  background: var(--bg-base);
+  overflow: hidden;
+}
+
+.workspace {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+
+/* desktop layout: 65% left, 35% right */
+.mainVisual {
+  flex: 0 0 65%;
+  height: 100%;
+  position: relative;
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.rightRail {
+  flex: 0 0 35%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.alertSection {
+  flex: 0 0 45%;
+  height: 45%;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border);
+}
+
+.tabbedSection {
+  flex: 0 0 55%;
+  height: 55%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tabBar {
+  display: flex;
+  background: #11141c;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.tabBtn {
+  flex: 1;
+  padding: 8px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.tabBtnActive {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  background: rgba(217, 119, 6, 0.06);
+  font-weight: 600;
+}
+
+.tabContent {
+  flex: 1;
+  overflow: hidden;
+}
+
+/* mobile layout: single active full-width panel */
+@media (max-width: 1024px) {
+  .workspace {
+    flex-direction: column;
+  }
+
+  .mainVisual {
+    flex: 1;
+    border-right: none;
+  }
+
+  .rightRail {
+    display: none;
+  }
+
+  .mobileOnlyPanel {
+    flex: 1;
+    height: 100%;
+    overflow: hidden;
+  }
+}

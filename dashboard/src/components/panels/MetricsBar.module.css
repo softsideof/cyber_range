@@ -1,0 +1,87 @@
+.container {
+  display: flex;
+  align-items: center;
+  background: #090d16;
+  border-bottom: 1px solid var(--border);
+  padding: 6px 16px;
+  gap: 18px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.defconPill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 2px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.defconGreen {
+  background: rgba(6, 214, 160, 0.12);
+  border: 1px solid var(--green);
+  color: var(--green);
+}
+
+.defconYellow {
+  background: rgba(255, 209, 102, 0.12);
+  border: 1px solid var(--yellow);
+  color: var(--yellow);
+}
+
+.defconRed {
+  background: rgba(255, 42, 85, 0.2);
+  border: 1px solid var(--red);
+  color: var(--red);
+  box-shadow: 0 0 10px rgba(255, 42, 85, 0.35);
+  animation: pulseCrit 1.4s infinite;
+}
+
+@keyframes pulseCrit {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.65; }
+}
+
+.metricItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.label {
+  color: var(--text-3);
+  text-transform: uppercase;
+  font-size: 9.5px;
+  letter-spacing: 0.05em;
+}
+
+.val {
+  color: #fff;
+  font-weight: 700;
+}
+
+.barTrack {
+  width: 55px;
+  height: 4px;
+  background: #121927;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+}

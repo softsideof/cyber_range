@@ -1,0 +1,47 @@
+.statusBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 26px;
+  background: #070a10;
+  border-top: 1px solid var(--border);
+  padding: 0 14px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-2);
+  user-select: none;
+  z-index: 10;
+}
+
+@media (max-width: 1024px) {
+  .statusBar {
+    display: none;
+  }
+}
+
+.left, .right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.indicator {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--green);
+  margin-right: 4px;
+}
+
+.keyHint {
+  color: var(--text-3);
+}
+
+.keyHint kbd {
+  background: #191e2b;
+  border: 1px solid var(--border);
+  padding: 1px 4px;
+  border-radius: 2px;
+  color: var(--text-1);
+}
