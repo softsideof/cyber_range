@@ -18,11 +18,12 @@ import { ScoreCard } from '@/components/panels/ScoreCard';
 import { ScenarioBriefing } from '@/components/panels/ScenarioBriefing';
 import { ArchitectureView } from '@/components/panels/ArchitectureView';
 import { AttackBuilder } from '@/components/attack-builder/AttackBuilder';
+import { ShortcutsModal } from '@/components/panels/ShortcutsModal';
 import styles from './page.module.css';
 
 export default function DashboardPage() {
   const { launch, launchCustom, restart, stepOnce } = useWorker();
-  useKeyboard(launch);
+  useKeyboard(launch, stepOnce, restart);
 
   const mode = useAppStore((s) => s.mode);
   const activeTab = useAppStore((s) => s.activeTab);
@@ -136,6 +137,7 @@ export default function DashboardPage() {
       {showBriefing && <ScenarioBriefing onDismiss={() => setShowBriefing(false)} />}
       <ArchitectureView />
       <AttackBuilder onDeployCustom={launchCustom} />
+      <ShortcutsModal />
     </div>
   );
 }

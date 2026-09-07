@@ -38,6 +38,7 @@ export interface AppStore {
   showAttackBuilder: boolean;
   showArchitecture: boolean;
   showBriefing: boolean;
+  showShortcuts: boolean;
   selectedNodeId: string | null;
   viewMode: '3d' | '2d';
   autoDemo: boolean;
@@ -53,6 +54,7 @@ export interface AppStore {
   setShowAttackBuilder: (show: boolean) => void;
   setShowArchitecture: (show: boolean) => void;
   setShowBriefing: (show: boolean) => void;
+  setShowShortcuts: (show: boolean) => void;
   setSelectedNodeId: (nodeId: string | null) => void;
   setViewMode: (mode: '3d' | '2d') => void;
   setAutoDemo: (auto: boolean) => void;
@@ -93,6 +95,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   showAttackBuilder: false,
   showArchitecture: false,
   showBriefing: false,
+  showShortcuts: false,
   selectedNodeId: null,
   viewMode: '2d',
   autoDemo: false,
@@ -129,6 +132,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   setShowAttackBuilder: (showAttackBuilder) => set({ showAttackBuilder }),
   setShowArchitecture: (showArchitecture) => set({ showArchitecture }),
   setShowBriefing: (showBriefing) => set({ showBriefing }),
+  setShowShortcuts: (showShortcuts) => set({ showShortcuts }),
   setSelectedNodeId: (selectedNodeId) => set({ selectedNodeId }),
   setViewMode: (viewMode) => set({ viewMode }),
   setAutoDemo: (autoDemo) => set({ autoDemo }),

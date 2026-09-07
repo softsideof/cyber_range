@@ -7,7 +7,11 @@ import { SCENARIOS } from '../engine/scenarios';
 
 const SCENARIO_KEYS = Object.keys(SCENARIOS);
 
-export function useKeyboard(launchScenario: (id: string) => void) {
+export function useKeyboard(
+  launchScenario: (id: string) => void,
+  stepOnce?: () => void,
+  onReset?: () => void,
+) {
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       // ignore when focusing inputs, textareas, or select dropdowns
@@ -27,17 +31,31 @@ export function useKeyboard(launchScenario: (id: string) => void) {
       if (e.code === 'Space') {
         e.preventDefault();
         store.togglePaused();
+      } else if (e.key === '?' || (e.key === '/' && e.shiftKey)) {
+        e.preventDefault();
+        store.setShowShortcuts(!store.showShortcuts);
       } else if (e.key === 'b' || e.key === 'B') {
         e.preventDefault();
         store.setShowAttackBuilder(!store.showAttackBuilder);
       } else if (e.key === 'a' || e.key === 'A') {
         e.preventDefault();
         store.setShowArchitecture(!store.showArchitecture);
+      } else if ((e.key === 'r' || e.key === 'R') && !e.ctrlKey && !e.metaKey) {
+        if (onReset) {
+          e.preventDefault();
+          onReset();
+        }
+      } else if (e.key === 'ArrowRight' || e.key === '.') {
+        if (stepOnce) {
+          e.preventDefault();
+          stepOnce();
+        }
       } else if (e.key === 'Escape') {
         e.preventDefault();
         store.setShowAttackBuilder(false);
         store.setShowArchitecture(false);
         store.setShowBriefing(false);
+        store.setShowShortcuts(false);
         store.setSelectedNodeId(null);
       } else if (['1', '2', '3', '4', '5', '6'].includes(e.key)) {
         const num = parseInt(e.key, 10) - 1;
@@ -50,5 +68,5 @@ export function useKeyboard(launchScenario: (id: string) => void) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [launchScenario]);
+  }, [launchScenario, stepOnce, onReset]);
 }

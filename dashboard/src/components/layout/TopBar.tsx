@@ -24,6 +24,7 @@ export function TopBar({ onSelectScenario }: TopBarProps) {
   const setShowAttackBuilder = useAppStore((s) => s.setShowAttackBuilder);
   const setShowArchitecture = useAppStore((s) => s.setShowArchitecture);
   const setShowBriefing = useAppStore((s) => s.setShowBriefing);
+  const setShowShortcuts = useAppStore((s) => s.setShowShortcuts);
 
   const [utcTime, setUtcTime] = useState('');
 
@@ -52,6 +53,14 @@ export function TopBar({ onSelectScenario }: TopBarProps) {
           title="Incident Dossier Briefing"
         >
           BRIEFING
+        </button>
+        <button
+          className={styles.ctrlBtn}
+          style={{ fontSize: 10, padding: '3px 8px' }}
+          onClick={() => setShowShortcuts(true)}
+          title="Keyboard Shortcuts Cheatsheet (Press ?)"
+        >
+          KEYS [?]
         </button>
       </div>
 
