@@ -4,6 +4,7 @@
 
 import React from 'react';
 import { useAppStore } from '@/store';
+import { generateIncidentReport, downloadIncidentReport } from '@/engine/reporter';
 import styles from './ScoreCard.module.css';
 
 interface ScoreCardProps {
@@ -15,6 +16,15 @@ interface ScoreCardProps {
 export function ScoreCard({ onRestart, onOpenBuilder, onNext }: ScoreCardProps) {
   const graderResult = useAppStore((s) => s.graderResult);
   const scenario = useAppStore((s) => s.scenario);
+  const agentLog = useAppStore((s) => s.agentLog);
+  const topology = useAppStore((s) => s.topology);
+
+  const handleDownloadReport = () => {
+    if (!graderResult) return;
+    const reportMd = generateIncidentReport(graderResult, scenario, agentLog, topology);
+    const filename = `Incident_Report_${scenario?.id || 'sim'}.md`;
+    downloadIncidentReport(reportMd, filename);
+  };
 
   if (!graderResult) {
     return (
@@ -115,13 +125,20 @@ export function ScoreCard({ onRestart, onOpenBuilder, onNext }: ScoreCardProps) 
       </div>
 
       <div className={styles.actionRow}>
+        <button
+          className={styles.btnPrimary}
+          onClick={handleDownloadReport}
+          title="Export Markdown Incident Report"
+        >
+          📄 Export AAR Report
+        </button>
         {onRestart && (
           <button className={styles.btnSecondary} onClick={onRestart}>
             Replay Scenario
           </button>
         )}
         {onOpenBuilder && (
-          <button className={styles.btnPrimary} onClick={onOpenBuilder}>
+          <button className={styles.btnSecondary} onClick={onOpenBuilder}>
             Inject Custom Virus
           </button>
         )}
