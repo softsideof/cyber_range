@@ -174,27 +174,36 @@ export function useWorker() {
   }, [startDirectSim]);
 
   const restart = useCallback(() => {
-    const current = useAppStore.getState().scenario || SCENARIOS['script_kiddie'];
     useAppStore.getState().setPaused(true);
-    if (directTimerRef.current) {
-      clearInterval(directTimerRef.current);
-      directTimerRef.current = null;
+    if (workerRef.current) {
+      workerRef.current.postMessage({ type: 'RESET' } satisfies WorkerCommand);
+    } else {
+      const current = useAppStore.getState().scenario || SCENARIOS['script_kiddie'];
+      if (directTimerRef.current) {
+        clearInterval(directTimerRef.current);
+        directTimerRef.current = null;
+      }
+      directSimRef.current = createSimulation(current);
+      const { state } = stepSimulation(directSimRef.current);
+      setSimulationState(state);
     }
-    directSimRef.current = createSimulation(current);
-    const { state } = stepSimulation(directSimRef.current);
-    setSimulationState(state);
   }, [setSimulationState]);
 
   const stepOnce = useCallback(() => {
-    if (!directSimRef.current) {
-      const current = useAppStore.getState().scenario || SCENARIOS['script_kiddie'];
-      directSimRef.current = createSimulation(current);
-    }
-    const { isDone, state } = stepSimulation(directSimRef.current);
-    setSimulationState(state);
-    if (isDone && directTimerRef.current) {
-      clearInterval(directTimerRef.current);
-      directTimerRef.current = null;
+    useAppStore.getState().setPaused(true);
+    if (workerRef.current) {
+      workerRef.current.postMessage({ type: 'STEP_ONCE' } satisfies WorkerCommand);
+    } else {
+      if (!directSimRef.current) {
+        const current = useAppStore.getState().scenario || SCENARIOS['script_kiddie'];
+        directSimRef.current = createSimulation(current);
+      }
+      const { isDone, state } = stepSimulation(directSimRef.current);
+      setSimulationState(state);
+      if (isDone && directTimerRef.current) {
+        clearInterval(directTimerRef.current);
+        directTimerRef.current = null;
+      }
     }
   }, [setSimulationState]);
 

@@ -202,6 +202,8 @@ export type WorkerCommand =
   | { type: 'PAUSE' }
   | { type: 'RESUME' }
   | { type: 'SET_SPEED'; speed: number }
+  | { type: 'STEP_ONCE' }
+  | { type: 'RESET' }
   | { type: 'STOP' };
 
 export type WorkerMessage =

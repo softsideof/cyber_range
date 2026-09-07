@@ -92,6 +92,29 @@ self.onmessage = (event: MessageEvent<WorkerCommand>) => {
         break;
       }
 
+      case 'STEP_ONCE': {
+        if (!currentSim) return;
+        isPaused = true;
+        stopLoop();
+        const { isDone, state } = stepSimulation(currentSim);
+        post({ type: 'STATE_UPDATE', state });
+        if (isDone) {
+          post({ type: 'EPISODE_END', state });
+        }
+        break;
+      }
+
+      case 'RESET': {
+        if (!currentSim) return;
+        stopLoop();
+        const scenario = currentSim.scenario;
+        currentSim = createSimulation(scenario);
+        isPaused = true;
+        const { state } = stepSimulation(currentSim);
+        post({ type: 'STATE_UPDATE', state });
+        break;
+      }
+
       case 'STOP': {
         stopLoop();
         currentSim = null;
